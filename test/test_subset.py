@@ -3,7 +3,9 @@ from backtracking.subset import (
     subset,
     elements,
     smallest,
+    smallest_numba,
     num_elements,
+    num_elements_numba,
     is_empty,
     is_singleton,
     remove,
@@ -48,6 +50,16 @@ class TestSubset:
                 rex_sx_1 = subset([x] if x in elements(s) else [])
                 assert rex_sx_0 == rex_sx_1
 
+    def test_smallest_numba(self):
+        for s in range(100):
+            assert smallest(s) == smallest_numba(s)
+
+    def test_num_elements_numba(self):
+        for s in range(100):
+            assert num_elements(s) == num_elements_numba(s)
+
+
+class TestSubsetNumba:
     def test_numba_elements(self):
         fast_fn = elements
         slow_fn = fast_fn.py_func
@@ -56,4 +68,15 @@ class TestSubset:
         n = 10000
         t_fast = timeit(lambda: fast_fn(s), number=n)
         t_slow = timeit(lambda: slow_fn(s), number=n)
+        assert t_fast < t_slow
+
+    def test_numba_num_elements(self):
+        fast_fn = num_elements
+        slow_fn = num_elements_numba
+        slow_fn(0)
+        s = 133742069
+        n = 10000
+        t_fast = timeit(lambda: fast_fn(s), number=n)
+        t_slow = timeit(lambda: slow_fn(s), number=n)
+        print(t_fast, t_slow)
         assert t_fast < t_slow

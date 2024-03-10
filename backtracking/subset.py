@@ -21,11 +21,31 @@ def elements(s: int) -> list[int]:
 
 
 def smallest(s: int) -> Optional[int]:
-    return None if is_empty(s) else (s & -s).bit_length() - 1
+    return None if is_empty(s) else int(s & -s).bit_length() - 1
+
+
+@njit
+def smallest_numba(s: int) -> Optional[int]:
+    if not s:
+        return None
+    x = 0
+    while not s & 1:
+        s >>= 1
+        x += 1
+    return x
 
 
 def num_elements(s: int) -> int:
-    return s.bit_count()
+    return int(s).bit_count()
+
+
+@njit
+def num_elements_numba(s: int) -> int:
+    ans = 0
+    while s:
+        ans += s & 1
+        s >>= 1
+    return ans
 
 
 def is_empty(s: int) -> bool:

@@ -67,35 +67,13 @@ def argmin_num_elements(cm: Choices) -> tuple[int, int]:
     return min_i, min_j
 
 
-@njit
-def expand(cm: Choices) -> list[Choices]:
-    """Expands the given choices matrix by selecting the element with
-    the fewest possible choices, and creating new choice matrices for
-    each possible choice of that element.
-
-    Args:
-        cm (Choices): The choices matrix to expand.
-
-    Returns:
-        list[Choices]: A list of new choice matrices, each representing
-            a possible choice for the element with the fewest possible
-            choices.
-    """
-    i, j = argmin_num_elements(cm)
-    ans = []
-    for x in elements(cm[i, j]):
-        cmx = np.copy(cm)
-        cmx[i, j] &= 1 << x  # cmx[i, j] = remove_except(cmx[i, j], x)
-        ans.append(cmx)
-    return ans
-
-
-class Problem:
+class Backtracking:
     """
     Represents a backtracking problem.
 
     Usage:
         - Define new class that inherits from this class.
+        - Override __init__ to specify problem constants.
         - Define the constraints as methods of the new class. Use the
             'constraint' decorator to register them.
         - Instantiate by providing initial choices matrix.
@@ -155,7 +133,7 @@ class Problem:
                 continue
             if accept(cm):
                 yield grid(cm)
-            stack += expand(cm)
+            stack += self.expand(cm)
 
     def solution(self) -> Optional[Grid]:
         """Finds a solution using a backtracking algorithm.
@@ -173,6 +151,31 @@ class Problem:
         """
         return list(self.solution_generator())
 
+    # TODO: test overriding expand
+    @staticmethod
+    @njit
+    def expand(cm: Choices) -> list[Choices]:
+        """Expands the given choices matrix by selecting the element with
+        the fewest possible choices, and creating new choice matrices for
+        each possible choice of that element.
+
+        Args:
+            cm (Choices): The choices matrix to expand.
+
+        Returns:
+            list[Choices]: A list of new choice matrices, each representing
+                a possible choice for the element with the fewest possible
+                choices.
+        """
+        i, j = argmin_num_elements(cm)
+        ans = []
+        for x in elements(cm[i, j]):
+            cmx = np.copy(cm)
+            cmx[i, j] &= 1 << x  # cmx[i, j] = remove_except(cmx[i, j], x)
+            ans.append(cmx)
+        return ans
+
+    # TODO: how is this called? Neither self.constraint or constraint exist
     def constraint(self, func):
         """Decorator that registers a method as a constraint.
 

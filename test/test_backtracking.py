@@ -7,12 +7,12 @@ from backtracking.subset import (
     elements,
 )
 from backtracking.backtracking import (
+    Backtracking,
     Choices,
     Grid,
     grid,
     accept,
     argmin_num_elements,
-    expand,
 )
 from timeit import timeit
 
@@ -31,7 +31,7 @@ class Simple:
         return np.all(bool_arr)
 
 
-class TestProblem:
+class TestBacktracking:
     def test_grid(self):
         for _ in range(10):
             cm = rng.integers(0, 2 ** 32, (5, 5), dtype=np.uint32)
@@ -53,16 +53,16 @@ class TestProblem:
     def test_expand(self):
         for _ in range(10):
             cm0 = rng.integers(0, 2 ** 8, (5, 5), dtype=np.uint32)
-            cms = expand(cm0)
+            cms = Backtracking.expand(cm0)
             i, j = argmin_num_elements(cm0)
             assert len(cms) == num_elements(cm0[i, j])
             for cm, x in zip(cms, elements(cm0[i, j])):
                 assert cm[i, j] == subset([x])
 
 
-class TestProblemNumba:
+class TestBacktrackingNumba:
     def test_numba(self):
-        for fast_fn in [accept, expand, argmin_num_elements]:
+        for fast_fn in [accept, Backtracking.expand, argmin_num_elements]:
             slow_fn = fast_fn.py_func
             fast_fn(np.zeros((1, 1), dtype=np.uint32))
             cm = rng.integers(0, 2 ** 16, (10, 10), dtype=np.uint32)

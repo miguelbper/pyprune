@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
-from typing import Optional, Iterator
+from typing import Optional, Iterator, Callable
 from backtracking.subset import (
     elements,
     smallest,
@@ -74,13 +74,11 @@ class Backtracking:
     Usage:
         - Define new class that inherits from this class.
         - Override __init__ to specify problem constants.
-        - Define the constraints as methods of the new class. Use the
-            'constraint' decorator to register them.
+        - Define the constraints as methods of the new class.
         - Instantiate by providing initial choices matrix.
         - Call 'solution' or 'solutions' to find the solution(s).
 
     Attributes:
-        constraints (list): A list of constraint functions.
         cm0 (Choices): The initial matrix of choices.
 
     Public methods (meant to be called by the user):
@@ -93,8 +91,8 @@ class Backtracking:
         solutions(self) -> list[Grid]:
             Returns a list of all possible solutions for the problem.
 
-        constraint(self, func):
-            Decorator that registers a method as a constraint.
+        constraint(self) -> Callable[[Choices], Optional[Choices]]:
+            Generator function that yields constraint functions.
 
     Private methods (only meant to be called by the class):
         solution_generator(self) -> Iterator[Grid]:
@@ -113,7 +111,6 @@ class Backtracking:
         Returns:
             None
         """
-        self.constraints = []
         self.cm0 = cm0.astype(np.uint32)
 
     # TODO: integration test
@@ -129,7 +126,7 @@ class Backtracking:
         stack = [self.cm0]
         while stack:
             cm = self.prune(stack.pop())
-            if not cm:
+            if cm is None:
                 continue
             if accept(cm):
                 yield grid(cm)
@@ -168,30 +165,14 @@ class Backtracking:
                 choices.
         """
         i, j = argmin_num_elements(cm)
+        if i == -1:
+            return [cm for _ in range(0)]  # empty list that numba can infer
         ans = []
         for x in elements(cm[i, j]):
             cmx = np.copy(cm)
             cmx[i, j] &= 1 << x  # cmx[i, j] = remove_except(cmx[i, j], x)
             ans.append(cmx)
         return ans
-
-    # TODO: how is this called? Neither self.constraint or constraint exist
-    def constraint(self, func):
-        """Decorator that registers a method as a constraint.
-
-        Does not alter the function in any way, merely adds it to the
-        list of constraints. Constraint methods are defined by the users
-        of the library. They represent the constraints and rules of the
-        problem.
-
-        Parameters:
-            func: The constraint function to be added.
-
-        Returns:
-            The added constraint function.
-        """
-        self.constraints.append(func)
-        return func
 
     def prune(self, cm: Choices) -> Optional[Choices]:
         """Prunes the choices based on the constraints.
@@ -209,9 +190,27 @@ class Backtracking:
         prune_again = True
         while prune_again:
             cm_temp = np.copy(cm)
-            for func in self.constraints:
+            for func in self.constraints():
                 cm = func(cm)
-                if not (cm and np.all(cm)):
+                if cm is None or not np.all(cm):
                     return None
             prune_again = not np.array_equal(cm, cm_temp)
         return cm
+
+    def constraints(self) -> Iterator[Callable[[Choices], Optional[Choices]]]:
+        """Generator function that yields constraint functions.
+
+        Constraints are defined by the user as methods of a class
+        that inherits from Backtracking. A constraint is a method
+        whose name starts with 'constraint_', of type
+        Callable[[Choices], Optional[Choices]].
+
+        Yields:
+            Callable[[Choices], Optional[Choices]]: A function
+                representing a constraint of the problem.
+        """
+        for attr_name in dir(self):
+            if attr_name.startswith('constraint_'):
+                attr_value = getattr(self, attr_name)
+                if callable(attr_value):
+                    yield attr_value

@@ -68,8 +68,7 @@ def argmin_num_elements(cm: Choices) -> tuple[int, int]:
 
 
 class Backtracking:
-    """
-    Represents a backtracking problem.
+    """Represents a backtracking problem.
 
     Usage:
         - Define new class that inherits from this class.
@@ -113,7 +112,7 @@ class Backtracking:
         """
         self.cm0 = cm0.astype(np.uint32)
 
-    # TODO: integration test
+    # TODO: integration test (sudoku)
     def solution_generator(self) -> Iterator[Grid]:
         """Generates solutions using backtracking algorithm.
 
@@ -130,7 +129,8 @@ class Backtracking:
                 continue
             if accept(cm):
                 yield grid(cm)
-            stack += self.expand(cm)
+            else:
+                stack += self.expand(cm)
 
     def solution(self) -> Optional[Grid]:
         """Finds a solution using a backtracking algorithm.
@@ -165,8 +165,6 @@ class Backtracking:
                 choices.
         """
         i, j = argmin_num_elements(cm)
-        if i == -1:
-            return [cm for _ in range(0)]  # empty list that numba can infer
         ans = []
         for x in elements(cm[i, j]):
             cmx = np.copy(cm)

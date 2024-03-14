@@ -8,34 +8,6 @@ Grid = NDArray[np.uint32]     # Each element is an int
 Choices = NDArray[np.uint32]  # Each element is an int representing a set
 
 
-def grid(cm: Choices) -> Grid:
-    """Convert from a choices matrix to a grid.
-
-    Assumes that no element of cm is zero. When used in
-    'solution_generator', this is true because of the 'accept' function.
-
-    Parameters:
-        cm (Choices): The input choices matrix.
-
-    Returns:
-        Grid: The resulting grid.
-    """
-    return np.vectorize(smallest)(cm)
-
-
-@njit
-def accept(cm: Choices) -> bool:
-    """Checks if all elements of the choice matrix are singletons.
-
-    Parameters:
-        cm (Choices): The choice matrix to be checked.
-
-    Returns:
-        bool: True if all elements of the choice matrix are singletons.
-    """
-    return np.all(np.logical_and(cm, cm & (cm - 1) == 0))
-
-
 @njit
 def argmin_num_elements(cm: Choices) -> tuple[int, int]:
     """Finds i, j that minimizes the number of elements in cm[i, j],
@@ -92,6 +64,15 @@ class Backtracking:
         solution_generator(self) -> Iterator[Grid]:
             Generates solutions using the backtracking algorithm.
 
+        grid(cm: Choices) -> Grid:
+            Converts from a choices matrix to a grid.
+
+        accept(self, cm: Choices) -> bool:
+            Checks if all elements of the choice matrix are singletons.
+
+        expand(self, cm: Choices) -> list[Choices]:
+            Chooses a cell and lists the possible values for that cell.
+
         prune(self, cm: Choices) -> Optional[Choices]:
             Prunes the choices based on the constraints.
 
@@ -124,8 +105,8 @@ class Backtracking:
             cm = self.prune(stack.pop())
             if cm is None:
                 continue
-            if accept(cm):
-                yield grid(cm)
+            if self.accept(cm):
+                yield self.grid(cm)
             else:
                 stack += self.expand(cm)
 
@@ -145,13 +126,42 @@ class Backtracking:
         """
         return list(self.solution_generator())
 
-    # TODO: test overriding expand
+    @staticmethod
+    def grid(cm: Choices) -> Grid:
+        """Convert from a choices matrix to a grid.
+
+        Assumes that no element of cm is zero. When used in
+        'solution_generator', this is true because of the 'accept' function.
+
+        Parameters:
+            cm (Choices): The input choices matrix.
+
+        Returns:
+            Grid: The resulting grid.
+        """
+        return np.vectorize(smallest)(cm)
+
+    @staticmethod
+    @njit
+    def accept(cm: Choices) -> bool:
+        """Checks if all elements of the choice matrix are singletons.
+
+        Parameters:
+            cm (Choices): The choice matrix to be checked.
+
+        Returns:
+            bool: True if all elements of the choice matrix are singletons.
+        """
+        return np.all(np.logical_and(cm, cm & (cm - 1) == 0))
+
     @staticmethod
     @njit
     def expand(cm: Choices) -> list[Choices]:
-        """Expands the given choices matrix by selecting the element
-        with the fewest possible choices, and creating new choice
-        matrices for each possible choice of that element.
+        """Chooses a cell and lists the possible values for that cell.
+
+        Expands the given choices matrix by selecting the element with
+        the fewest possible choices, and creating new choice matrices
+        for each possible choice of that element.
 
         Args:
             cm (Choices): The choices matrix to expand.

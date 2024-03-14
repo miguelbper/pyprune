@@ -10,8 +10,6 @@ from backtracking.backtracking import (
     Backtracking,
     Choices,
     Grid,
-    grid,
-    accept,
     argmin_num_elements,
 )
 from timeit import timeit
@@ -35,12 +33,12 @@ class TestBacktracking:
     def test_grid(self):
         for _ in range(10):
             cm = rng.integers(0, 2 ** 32, (5, 5), dtype=np.uint32)
-            assert np.array_equal(grid(cm), Simple.grid_(cm))
+            assert np.array_equal(Backtracking.grid(cm), Simple.grid_(cm))
 
     def test_accept(self):
         for _ in range(10):
             cm = rng.integers(0, 2 ** 32, (5, 5), dtype=np.uint32)
-            assert accept(cm) == Simple.accept_(cm)
+            assert Backtracking.accept(cm) == Simple.accept_(cm)
 
     def test_argmin_num_elements(self):
         for _ in range(10):
@@ -62,7 +60,8 @@ class TestBacktracking:
 
 class TestBacktrackingNumba:
     def test_numba(self):
-        for fast_fn in [accept, Backtracking.expand, argmin_num_elements]:
+        funcs = [Backtracking.expand, Backtracking.accept, argmin_num_elements]
+        for fast_fn in funcs:
             slow_fn = fast_fn.py_func
             fast_fn(np.zeros((1, 1), dtype=np.uint32))
             cm = rng.integers(0, 2 ** 16, (10, 10), dtype=np.uint32)

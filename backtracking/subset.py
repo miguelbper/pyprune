@@ -46,7 +46,8 @@ def smallest(s: int) -> Optional[int]:
         Optional[int]: The smallest element in the set, or None if the
             set is empty.
     """
-    return None if is_empty(s) else int(s & -s).bit_length() - 1
+    s = int(s)  # s may be a numpy integer, convert to Python int
+    return None if is_empty(s) else (s & -s).bit_length() - 1
 
 
 @njit
@@ -119,6 +120,23 @@ def is_empty(s: int) -> bool:
 def is_singleton(s: int) -> bool:
     """Checks if the given integer is a power of 2. This is equivalent
     to saying that the integer has exactly one bit set to 1.
+
+    Args:
+        s (int): The integer to be checked.
+
+    Returns:
+        bool: True if the integer is a power of 2, False otherwise.
+    """
+    return s and s & (s - 1) == 0
+
+
+@njit
+def is_singleton_numba(s: int) -> bool:
+    """Checks if the given integer is a power of 2. This is equivalent
+    to saying that the integer has exactly one bit set to 1.
+
+    Numba version of is_singleton. Can be called inside a function to
+    which @njit is applied.
 
     Args:
         s (int): The integer to be checked.

@@ -1,12 +1,8 @@
+from typing import Optional, Iterator, Callable
 import numpy as np
 from numpy.typing import NDArray
-from typing import Optional, Iterator, Callable
-from backtracking.subset import (
-    elements,
-    smallest,
-    num_elements_numba,
-)
 from numba import njit
+from backtracking.subset import elements, smallest, num_elements_numba
 
 Grid = NDArray[np.uint32]     # Each element is an int
 Choices = NDArray[np.uint32]  # Each element is an int representing a set
@@ -45,7 +41,9 @@ def argmin_num_elements(cm: Choices) -> tuple[int, int]:
     """Finds i, j that minimizes the number of elements in cm[i, j],
     subject to the condition that cm[i, j] has at least two elements.
 
-    This function is called inside expand.
+    If no cell has at least two elements, then (-1, -1) is returned.
+    This function is called inside expand. Therefore, it is guaranteed
+    that there is at least one cell with at least two elements.
 
     Args:
         cm (Choices): The Choices matrix.
@@ -78,10 +76,10 @@ class Backtracking:
         - Call 'solution' or 'solutions' to find the solution(s).
 
     Attributes:
-        cm0 (Choices): The initial matrix of choices.
+        cm (Choices): The initial matrix of choices.
 
     Public methods (meant to be called by the user):
-        __init__(self, cm0: Choices) -> None:
+        __init__(self, cm: Choices) -> None:
             Initializes a Backtracking object.
 
         solution(self) -> Optional[Grid]:
@@ -90,29 +88,28 @@ class Backtracking:
         solutions(self) -> list[Grid]:
             Returns a list of all possible solutions for the problem.
 
-        constraint(self) -> Callable[[Choices], Optional[Choices]]:
-            Generator function that yields constraint functions.
-
     Private methods (only meant to be called by the class):
         solution_generator(self) -> Iterator[Grid]:
             Generates solutions using the backtracking algorithm.
 
         prune(self, cm: Choices) -> Optional[Choices]:
             Prunes the choices based on the constraints.
+
+        constraint(self) -> Callable[[Choices], Optional[Choices]]:
+            Generator function that yields constraint functions.
     """
 
-    def __init__(self, cm0: Choices) -> None:
+    def __init__(self, cm: Choices) -> None:
         """Initializes a Backtracking object.
 
         Args:
-            cm0 (Choices): The initial matrix of choices.
+            cm (Choices): The initial matrix of choices.
 
         Returns:
             None
         """
-        self.cm0 = cm0.astype(np.uint32)
+        self.cm = cm.astype(np.uint32)
 
-    # TODO: integration test (sudoku)
     def solution_generator(self) -> Iterator[Grid]:
         """Generates solutions using backtracking algorithm.
 
@@ -122,7 +119,7 @@ class Backtracking:
         Yields:
             Grid: A valid solution grid.
         """
-        stack = [self.cm0]
+        stack = [self.cm]
         while stack:
             cm = self.prune(stack.pop())
             if cm is None:
@@ -152,17 +149,17 @@ class Backtracking:
     @staticmethod
     @njit
     def expand(cm: Choices) -> list[Choices]:
-        """Expands the given choices matrix by selecting the element with
-        the fewest possible choices, and creating new choice matrices for
-        each possible choice of that element.
+        """Expands the given choices matrix by selecting the element
+        with the fewest possible choices, and creating new choice
+        matrices for each possible choice of that element.
 
         Args:
             cm (Choices): The choices matrix to expand.
 
         Returns:
-            list[Choices]: A list of new choice matrices, each representing
-                a possible choice for the element with the fewest possible
-                choices.
+            list[Choices]: A list of new choice matrices, each
+                representing a possible choice for the element with the
+                fewest possible choices.
         """
         i, j = argmin_num_elements(cm)
         ans = []
@@ -198,9 +195,9 @@ class Backtracking:
     def constraints(self) -> Iterator[Callable[[Choices], Optional[Choices]]]:
         """Generator function that yields constraint functions.
 
-        Constraints are defined by the user as methods of a class
-        that inherits from Backtracking. A constraint is a method
-        whose name starts with 'constraint_', of type
+        Constraints are defined by the user as methods of a class that
+        inherits from Backtracking. A constraint is a method whose name
+        starts with 'constraint_', of type
         Callable[[Choices], Optional[Choices]].
 
         Yields:

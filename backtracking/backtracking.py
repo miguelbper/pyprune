@@ -131,7 +131,8 @@ class Backtracking:
         """Convert from a choices matrix to a grid.
 
         Assumes that no element of cm is zero. When used in
-        'solution_generator', this is true because of the 'accept' function.
+        'solution_generator', this is true because of the 'accept'
+        function.
 
         Parameters:
             cm (Choices): The input choices matrix.
@@ -139,7 +140,7 @@ class Backtracking:
         Returns:
             Grid: The resulting grid.
         """
-        return np.vectorize(smallest)(cm)
+        return np.vectorize(smallest)(cm).astype(np.uint32)
 
     @staticmethod
     @njit

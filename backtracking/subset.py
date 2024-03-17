@@ -1,5 +1,4 @@
 from numba import njit
-from typing import Optional
 
 
 def subset(xs: list[int]) -> int:
@@ -36,22 +35,21 @@ def elements(s: int) -> list[int]:
     return result
 
 
-def smallest(s: int) -> Optional[int]:
+def smallest(s: int) -> int:
     """Finds the smallest element in the given set.
 
     Args:
         s (int): The set to find the smallest element from.
 
     Returns:
-        Optional[int]: The smallest element in the set, or None if the
-            set is empty.
+        int: The smallest element in the set, or -1 if the set is empty.
     """
     s = int(s)  # s may be a numpy integer, convert to Python int
-    return None if is_empty(s) else (s & -s).bit_length() - 1
+    return -1 if is_empty(s) else (s & -s).bit_length() - 1
 
 
 @njit
-def smallest_numba(s: int) -> Optional[int]:
+def smallest_numba(s: int) -> int:
     """Finds the smallest element in the given set.
 
     Numba version of smallest. Can be called inside a function to which
@@ -61,11 +59,10 @@ def smallest_numba(s: int) -> Optional[int]:
         s (int): The set to find the smallest element from.
 
     Returns:
-        Optional[int]: The smallest element in the set, or None if the
-            set is empty.
+        int: The smallest element in the set, or -1 if the set is empty.
     """
     if not s:
-        return None
+        return -1
     x = 0
     while not s & 1:
         s >>= 1

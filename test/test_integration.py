@@ -17,7 +17,7 @@ class NothingIsSolution(Backtracking):
     def __init__(self, cm0: Choices) -> None:
         super().__init__(cm0)
 
-    def constraint_nothing_is_solution(self, cm: Choices) -> Optional[Choices]:
+    def rule_nothing_is_solution(self, cm: Choices) -> Optional[Choices]:
         return None
 
 
@@ -30,7 +30,7 @@ class OnlyZeros(Backtracking):
     def __init__(self, cm0: Choices) -> None:
         super().__init__(cm0)
 
-    def constraint_only_zeros(self, cm: Choices) -> Optional[Choices]:
+    def rule_only_zeros(self, cm: Choices) -> Optional[Choices]:
         m, n = cm.shape
         ans = np.copy(cm)
         for i, j in product(range(m), range(n)):
@@ -44,7 +44,7 @@ class Sudoku(Backtracking):
 
     @staticmethod
     @njit
-    def constraint_sudoku(cm: Choices) -> Optional[Choices]:
+    def rule_sudoku(cm: Choices) -> Optional[Choices]:
         cm = np.copy(cm)
         for i in range(9):
             for j in range(9):

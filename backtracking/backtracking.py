@@ -14,7 +14,7 @@ def argmin_num_elements(cm: Choices) -> tuple[int, int]:
     subject to the condition that cm[i, j] has at least two elements.
 
     If no cell has at least two elements, then (-1, -1) is returned.
-    This function is called inside expand. Therefore, it is guaranteed
+    This function is called inside expand. In that case, it's guaranteed
     that there is at least one cell with at least two elements.
 
     Args:
@@ -43,7 +43,7 @@ class Backtracking:
     Usage:
         - Define new class that inherits from this class.
         - Override __init__ to specify problem constants.
-        - Define the constraints as methods of the new class.
+        - Define the rules as methods of the new class.
         - Instantiate by providing initial choices matrix.
         - Call 'solution' or 'solutions' to find the solution(s).
 
@@ -74,10 +74,10 @@ class Backtracking:
             Chooses a cell and lists the possible values for that cell.
 
         prune(self, cm: Choices) -> Optional[Choices]:
-            Prunes the choices based on the constraints.
+            Prunes the choices based on the rules.
 
-        constraint(self) -> Callable[[Choices], Optional[Choices]]:
-            Generator function that yields constraint functions.
+        rules(self) -> Callable[[Choices], Optional[Choices]]:
+            Generator function that yields rule functions.
     """
 
     def __init__(self, cm: Choices) -> None:
@@ -151,7 +151,7 @@ class Backtracking:
             cm (Choices): The choice matrix to be checked.
 
         Returns:
-            bool: True if all elements of the choice matrix are singletons.
+            bool: True if all elements of cm are singletons.
         """
         return np.all(np.logical_and(cm, cm & (cm - 1) == 0))
 
@@ -181,42 +181,41 @@ class Backtracking:
         return ans
 
     def prune(self, cm: Choices) -> Optional[Choices]:
-        """Prunes the choices based on the constraints.
+        """Prunes the choices based on the rules.
 
-        Loops through the constraints defined by the users to either
-        reject a choices matrix or prune it.
+        Loops through the rules defined by the users to either reject a
+        choices matrix or prune it.
 
         Args:
             cm (Choices): The choices to be pruned.
 
         Returns:
-            Optional[Choices]: The pruned choices, or None if the
-                constraints are violated.
+            Optional[Choices]: The pruned choices, or None if the rules
+                are violated.
         """
         prune_again = True
         while prune_again:
             cm_temp = np.copy(cm)
-            for func in self.constraints():
+            for func in self.rules():
                 cm = func(cm)
                 if cm is None or not np.all(cm):
                     return None
             prune_again = not np.array_equal(cm, cm_temp)
         return cm
 
-    def constraints(self) -> Iterator[Callable[[Choices], Optional[Choices]]]:
-        """Generator function that yields constraint functions.
+    def rules(self) -> Iterator[Callable[[Choices], Optional[Choices]]]:
+        """Generator function that yields rule functions.
 
         Constraints are defined by the user as methods of a class that
-        inherits from Backtracking. A constraint is a method whose name
-        starts with 'constraint_', of type
-        Callable[[Choices], Optional[Choices]].
+        inherits from Backtracking. A rule is a method whose name starts
+        with 'rule_', of type Callable[[Choices], Optional[Choices]].
 
         Yields:
             Callable[[Choices], Optional[Choices]]: A function
-                representing a constraint of the problem.
+                representing a rule of the problem.
         """
         for attr_name in dir(self):
-            if attr_name.startswith('constraint_'):
+            if attr_name.startswith('rule_'):
                 attr_value = getattr(self, attr_name)
                 if callable(attr_value):
                     yield attr_value

@@ -1,3 +1,12 @@
+"""Backtracking algorithm for solving constraint satisfaction problems.
+
+Offers a Backtracking class that implements a backtracking algorithm.
+The class is general purpose and can be used to solve any constraint
+satisfaction puzzle. However, the class does not know the rules of any
+specific problem. Users should inherit from this class and add the rules
+of the problem.
+"""
+
 from typing import Optional, Iterator, Callable
 import numpy as np
 from numpy.typing import NDArray
@@ -164,6 +173,14 @@ class Backtracking:
         the fewest possible choices, and creating new choice matrices
         for each possible choice of that element.
 
+        This function may optionally be overridden by the user to make
+        more informed guesses for the list of possible choice matrices.
+        To do this, implement expand in the child class. The input is
+        the current choices matrix, and the output is a list of possible
+        prunings of the choices matrix, such that for every solution of
+        the problem, there exists a pruning in the list that contains
+        the solution.
+
         Args:
             cm (Choices): The choices matrix to expand.
 
@@ -209,6 +226,18 @@ class Backtracking:
         Constraints are defined by the user as methods of a class that
         inherits from Backtracking. A rule is a method whose name starts
         with 'rule_', of type Callable[[Choices], Optional[Choices]].
+
+        So, to define a rule, define a method in the child class as
+        follows:
+
+            def rule_my_rule(self, cm: Choices) -> Optional[Choices]:
+                ...
+
+        with the following properties (cm = input, om = output):
+            - if the rule is violated, return None
+            - For all i, j: om[i, j] ⊆ cm[i, j] (only remove elements)
+            - If a filled grid which is a subset of cm satisfies the
+              rule, then the filled grid is also a subset of om.
 
         Yields:
             Callable[[Choices], Optional[Choices]]: A function

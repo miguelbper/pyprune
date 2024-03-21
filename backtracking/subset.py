@@ -1,4 +1,4 @@
-"""Provides functions for working with sets represented as integers.
+'''Provides functions for working with sets represented as integers.
 
 An integer can be used to represent a set of elements: the binary of the
 integer has 1s at the indices of the elements in the set. For example,
@@ -10,13 +10,13 @@ choices matrix we store a set of possible values, and the backtracking
 algorithm progressively reduces the number of choices in each cell.
 The operations necessary to do this are much faster if done with ints
 representing sets plus bit operations, rather than using Python sets.
-"""
+'''
 
 from numba import njit
 
 
 def subset(xs: list[int]) -> int:
-    """Converts a list of integers into a binary representation.
+    '''Converts a list of integers into a binary representation.
 
     Args:
         xs (list[int]): The list of integers.
@@ -24,13 +24,13 @@ def subset(xs: list[int]) -> int:
     Returns:
         int: Number whose binary representation has 1s at the indices
             specified by the input list.
-    """
+    '''
     return sum([1 << x for x in xs])
 
 
 @njit
 def elements(s: int) -> list[int]:
-    """Converts an integer into the set it represents.
+    '''Converts an integer into the set it represents.
 
     Args:
         s (int): The input integer.
@@ -38,7 +38,7 @@ def elements(s: int) -> list[int]:
     Returns:
         list[int]: A list of indices where the binary representation of
             the input integer has 1s.
-    """
+    '''
     x = 0
     result = []
     while s:
@@ -50,21 +50,21 @@ def elements(s: int) -> list[int]:
 
 
 def smallest(s: int) -> int:
-    """Finds the smallest element in the given set.
+    '''Finds the smallest element in the given set.
 
     Args:
         s (int): The set to find the smallest element from.
 
     Returns:
         int: The smallest element in the set, or -1 if the set is empty.
-    """
+    '''
     s = int(s)  # s may be a numpy integer, convert to Python int
     return -1 if is_empty(s) else (s & -s).bit_length() - 1
 
 
 @njit
 def smallest_numba(s: int) -> int:
-    """Finds the smallest element in the given set.
+    '''Finds the smallest element in the given set.
 
     Numba version of smallest. Can be called inside a function to which
     @njit is applied.
@@ -74,7 +74,7 @@ def smallest_numba(s: int) -> int:
 
     Returns:
         int: The smallest element in the set, or -1 if the set is empty.
-    """
+    '''
     if not s:
         return -1
     x = 0
@@ -85,20 +85,20 @@ def smallest_numba(s: int) -> int:
 
 
 def num_elements(s: int) -> int:
-    """Returns the number of elements in the set represented by 's'.
+    '''Returns the number of elements in the set represented by 's'.
 
     Parameters:
         s (int): The input integer.
 
     Returns:
         int: The number of elements in 's'.
-    """
+    '''
     return int(s).bit_count()
 
 
 @njit
 def num_elements_numba(s: int) -> int:
-    """Returns the number of elements in the set represented by 's'.
+    '''Returns the number of elements in the set represented by 's'.
 
     Numba version of num_elements. Can be called inside a function to
     which @njit is applied.
@@ -108,7 +108,7 @@ def num_elements_numba(s: int) -> int:
 
     Returns:
         int: The number of elements in 's'.
-    """
+    '''
     ans = 0
     while s:
         ans += s & 1
@@ -117,19 +117,19 @@ def num_elements_numba(s: int) -> int:
 
 
 def is_empty(s: int) -> bool:
-    """Checks if the set represented by the given integer is empty.
+    '''Checks if the set represented by the given integer is empty.
 
     Args:
         s (int): The integer to check.
 
     Returns:
         bool: True if the set is empty, False otherwise.
-    """
+    '''
     return not s
 
 
 def is_singleton(s: int) -> bool:
-    """Checks if the given integer is a power of 2. This is equivalent
+    '''Checks if the given integer is a power of 2. This is equivalent
     to saying that the integer has exactly one bit set to 1.
 
     Args:
@@ -137,13 +137,13 @@ def is_singleton(s: int) -> bool:
 
     Returns:
         bool: True if the integer is a power of 2, False otherwise.
-    """
+    '''
     return s and s & (s - 1) == 0
 
 
 @njit
 def is_singleton_numba(s: int) -> bool:
-    """Checks if the given integer is a power of 2. This is equivalent
+    '''Checks if the given integer is a power of 2. This is equivalent
     to saying that the integer has exactly one bit set to 1.
 
     Numba version of is_singleton. Can be called inside a function to
@@ -154,12 +154,12 @@ def is_singleton_numba(s: int) -> bool:
 
     Returns:
         bool: True if the integer is a power of 2, False otherwise.
-    """
+    '''
     return s and s & (s - 1) == 0
 
 
 def remove(s: int, x: int) -> int:
-    """Removes the bit at position x from the integer s.
+    '''Removes the bit at position x from the integer s.
 
     Parameters:
         s (int): The integer from which to remove the bit.
@@ -167,12 +167,12 @@ def remove(s: int, x: int) -> int:
 
     Returns:
         int: The updated integer with the bit at position x removed.
-    """
+    '''
     return s & ~(1 << x)
 
 
 def remove_except(s: int, x: int) -> int:
-    """Removes all bits from the integer `s` except for the bit at
+    '''Removes all bits from the integer `s` except for the bit at
     position `x`.
 
     Parameters:
@@ -182,5 +182,5 @@ def remove_except(s: int, x: int) -> int:
     Returns:
         int: The modified integer with all bits except for the bit at
             position `x` set to 0.
-    """
+    '''
     return s & (1 << x)

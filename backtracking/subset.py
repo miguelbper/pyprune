@@ -1,9 +1,9 @@
 '''Provides functions for working with sets represented as integers.
 
-An integer can be used to represent a set of elements: the binary of the
-integer has 1s at the indices of the elements in the set. For example,
-the integer 5 has binary representation 101, which means that the set
-{0, 2} is represented by 5.
+An integer can be used to represent a set of elements: the binary
+representation of the integer has 1s at the indices of the elements in
+the set. For example, the integer 5 has binary representation 101, which
+means that the set {0, 2} is represented by 5.
 
 In the context of constraint satisfaction problems, in each cell of a
 choices matrix we store a set of possible values, and the backtracking

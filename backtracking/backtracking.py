@@ -11,7 +11,7 @@ from typing import Optional, Iterator, Callable
 import numpy as np
 from numpy.typing import NDArray
 from numba import njit
-from backtracking.subset import elements, smallest, num_elements_numba
+from .subset import elements, smallest, num_elements_numba
 
 Grid = NDArray[np.uint32]     # Each element is an int
 Choices = NDArray[np.uint32]  # Each element is an int representing a set

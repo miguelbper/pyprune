@@ -29,29 +29,29 @@ class Simple:
 
 
 @pytest.fixture(params=[1, 5], ids=lambda x: f"[n={x}]")
-def n(request):
+def n(request) -> int:
     return request.param
 
 
 @pytest.fixture(params=[1, 2, 8], ids=lambda x: f"[k={x}]")
-def k(request):
+def k(request) -> int:
     return request.param
 
 
 @pytest.fixture(params=list(range(5)), ids=lambda x: f"[seed={x}]")
-def cm(request, n, k):
+def cm(request, n: int, k: int) -> Choices:
     rng = np.random.default_rng(request.param)
     return rng.integers(0, 2**k, (n, n), dtype=np.uint32)
 
 
 class TestBacktracking:
-    def test_grid(self, cm):
+    def test_grid(self, cm: Choices):
         assert np.array_equal(Backtracking.grid(cm), Simple.grid_(cm))
 
-    def test_accept(self, cm):
+    def test_accept(self, cm: Choices):
         assert Backtracking.accept(cm) == Simple.accept_(cm)
 
-    def test_argmin_num_elements(self, cm):
+    def test_argmin_num_elements(self, cm: Choices):
         nm = np.vectorize(num_elements)(cm)
         if np.all(nm < 2):
             return
@@ -59,7 +59,7 @@ class TestBacktracking:
         i, j = argmin_num_elements(cm)
         assert num_elements(cm[i, j]) == np.min(xm)
 
-    def test_expand(self, cm):
+    def test_expand(self, cm: Choices):
         cms = Backtracking.expand(cm)
         i, j = argmin_num_elements(cm)
         assert len(cms) == num_elements(cm[i, j])

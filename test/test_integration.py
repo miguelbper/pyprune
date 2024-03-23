@@ -34,23 +34,23 @@ class OnlyZeros(Backtracking):
 
 
 @pytest.fixture(params=[1, 2, 5], ids=lambda x: f"[n={x}]")
-def n(request):
+def n(request) -> int:
     return request.param
 
 
 @pytest.fixture(params=[2, 8], ids=lambda x: f"[k={x}]")
-def k(request):
+def k(request) -> int:
     return request.param
 
 
 @pytest.fixture(params=list(range(5)), ids=lambda x: f"[seed={x}]")
-def cm(request, n, k):
+def cm(request, n: int, k: int) -> Choices:
     rng = np.random.default_rng(request.param)
     return rng.integers(1, 2**k, (n, n), dtype=np.uint32)
 
 
 class TestIntegration:
-    def test_nothing_is_solution(self, cm):
+    def test_nothing_is_solution(self, cm: Choices):
         problem = NothingIsSolution(cm)
         assert problem.solution() is None
         assert problem.solutions() == []
@@ -62,7 +62,7 @@ class TestIntegration:
         num_choices = np.vectorize(num_elements)(cm)
         assert len(problem.solutions()) == np.prod(num_choices)
 
-    def test_only_zeros(self, cm):
+    def test_only_zeros(self, cm: Choices):
         zeros = np.zeros(cm.shape, dtype=np.uint32)
         ones = np.ones(cm.shape, dtype=np.uint32)
         cm += np.where(cm % 2, zeros, ones)

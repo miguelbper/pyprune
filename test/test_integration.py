@@ -3,8 +3,8 @@ import pytest
 from typing import Optional
 from itertools import product
 import numpy as np
-from backtracking.subset import remove_except, num_elements
-from backtracking.backtracking import Backtracking, Choices
+from pyprune.subset import remove_except, num_elements
+from pyprune.backtracking import Backtracking, Choices
 from examples.sudoku import Sudoku, is_sudoku_solution, parse_file_to_sudoku
 
 

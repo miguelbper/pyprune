@@ -2,8 +2,8 @@ import os
 from typing import Optional
 import numpy as np
 from numba import njit
-from backtracking.backtracking import Backtracking, Grid, Choices
-from backtracking.subset import is_singleton_numba, smallest_numba
+from pyprune.backtracking import Backtracking, Grid, Choices
+from pyprune.subset import is_singleton_numba, smallest_numba
 
 
 # The class that should be implemented to solve a Sudoku puzzle

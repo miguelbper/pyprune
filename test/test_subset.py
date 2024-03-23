@@ -1,5 +1,5 @@
 import pytest
-from backtracking.subset import (
+from pyprune.subset import (
     subset,
     elements,
     smallest,

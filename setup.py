@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='backtracking',
+    name='pyprune',
     version='0.1.0',
-    url='https://github.com/miguelbper/backtracking',
+    url='https://github.com/miguelbper/pyprune',
     author='Miguel Pereira',
     author_email='miguel.b.per@gmail.com',
     description='Backtracking algorithm for constraint satisfaction puzzles.',

@@ -1,14 +1,14 @@
 import numpy as np
 from timeit import timeit
 import pytest
-from backtracking.subset import (
+from pyprune.subset import (
     smallest,
     is_singleton,
     num_elements,
     subset,
     elements,
 )
-from backtracking.backtracking import (
+from pyprune.backtracking import (
     Backtracking,
     Choices,
     Grid,

@@ -16,3 +16,21 @@ dev = [
     "pytest-cov>=6.0.0",
     "pytest>=8.3.3",
 ]
+
+[tool.ruff]
+line-length = 99
+
+# Set of rules taken from https://docs.astral.sh/ruff/linter/#rule-selection
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle
+    "F",  # Pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM",  # flake8-simplify
+]
+
+# docformatter pre-commit hook configured so that it is able to format Sphinx style docstrings
+[tool.docformatter]
+style = "google"

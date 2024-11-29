@@ -137,7 +137,6 @@ class Backtracking:
         return np.all(np.logical_and(cm, cm & (cm - 1) == 0))
 
     @staticmethod
-    @njit
     def expand(cm: Choices) -> list[Choices]:
         """Chooses a cell and lists the possible values for that cell.
 
@@ -161,22 +160,14 @@ class Backtracking:
                 representing a possible choice for the element with the
                 fewest possible choices.
         """
-        cardinality = np.sum((cm[..., None] & (1 << np.arange(32))) != 0, axis=-1)
-        idx = np.argmin(cardinality)
-
         powers_of_two = 1 << np.arange(32)
-        powers_present = powers_of_two[cm.flat[idx] & powers_of_two > 0]
-        num_copies = len(powers_present)
-        if not num_copies:
-            return [cm for _ in range(0)]
-
-        cm_copies = np.repeat(cm, num_copies)
-
-        cm_copies = np.reshape(cm_copies, (num_copies, -1))
-        cm_copies[:, idx] = powers_present
-        cm_copies = np.reshape(cm_copies, (num_copies,) + cm.shape)
-
-        return [cm_copies[k] for k in range(num_copies)]
+        cardinality = np.sum((cm[..., None] & powers_of_two) != 0, axis=-1)
+        cardinality = np.where(cardinality == 1, np.inf, cardinality)
+        multi_index = np.unravel_index(np.argmin(cardinality), cm.shape)
+        powers_present = powers_of_two[cm[multi_index] & powers_of_two > 0]
+        cm_copies = np.repeat(cm[np.newaxis, ...], len(powers_present), axis=0)
+        cm_copies[:, *multi_index] = powers_present
+        return list(cm_copies)
 
     def prune(self, cm: Choices) -> Choices | None:
         """Prunes the choices based on the rules.

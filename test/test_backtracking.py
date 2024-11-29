@@ -2,50 +2,9 @@ from timeit import timeit
 
 import numpy as np
 import pytest
-from numba import njit
 
-from pyprune.backtracking import (
-    Backtracking,
-    Choices,
-    Grid,
-)
-from pyprune.subset import (
-    elements,
-    is_singleton,
-    num_elements,
-    num_elements_numba,
-    smallest,
-    subset,
-)
-
-
-@njit
-def argmin_num_elements(cm: Choices) -> tuple[int, int]:
-    """Finds i, j that minimizes the number of elements in cm[i, j], subject to
-    the condition that cm[i, j] has at least two elements.
-
-    If no cell has at least two elements, then (-1, -1) is returned.
-    This function is called inside expand. In that case, it's guaranteed
-    that there is at least one cell with at least two elements.
-
-    Args:
-        cm (Choices): The Choices matrix.
-
-    Returns:
-        tuple[int, int]: The indices (i, j).
-    """
-    m, n = cm.shape
-    min_i, min_j = -1, -1
-    min_num_elements = np.inf
-    for i in range(m):
-        for j in range(n):
-            n_elements = num_elements_numba(cm[i, j])
-            if n_elements == 2:
-                return i, j
-            if 1 < n_elements < min_num_elements:
-                min_i, min_j = i, j
-                min_num_elements = n_elements
-    return min_i, min_j
+from pyprune.backtracking import Backtracking, Choices, Grid
+from pyprune.subset import is_singleton, smallest
 
 
 class Simple:
@@ -80,26 +39,20 @@ class TestBacktracking:
     def test_accept(self, cm: Choices):
         assert Backtracking.accept(cm) == Simple.accept_(cm)
 
-    def test_argmin_num_elements(self, cm: Choices):
-        nm = np.vectorize(num_elements)(cm)
-        if np.all(nm < 2):
-            return
-        xm = np.where(nm < 2, np.inf, nm)
-        i, j = argmin_num_elements(cm)
-        assert num_elements(cm[i, j]) == np.min(xm)
-
     def test_expand(self, cm: Choices):
-        cms = Backtracking.expand(cm)
-        i, j = argmin_num_elements(cm)
-        assert len(cms) == num_elements(cm[i, j])
-        for cm, x in zip(cms, elements(cm[i, j]), strict=False):  # noqa: B020
-            assert cm[i, j] == subset([x])
+        if np.all(cm) and not np.all(np.logical_and(cm, cm & (cm - 1) == 0)):
+            cms = np.stack(Backtracking.expand(cm), axis=0)
+            comparisons = cms == cm
+            comparison = comparisons[0]
+            assert np.all(comparisons == comparison)
+            assert np.sum(~comparison) == 1
+            multi_index = np.where(~comparison)
+            assert np.sum(cms[:, *multi_index]) == cm[multi_index]
 
 
 numba_functions = [
-    Backtracking.expand,
+    Backtracking.grid,
     Backtracking.accept,
-    argmin_num_elements,
 ]
 
 

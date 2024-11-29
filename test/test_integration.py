@@ -1,18 +1,19 @@
 import os
-import pytest
-from typing import Optional
 from itertools import product
+
 import numpy as np
-from pyprune.subset import remove_except, num_elements
-from pyprune.backtracking import Backtracking, Choices
+import pytest
+
 from examples.sudoku import Sudoku, is_sudoku_solution, parse_file_to_sudoku
+from pyprune.backtracking import Backtracking, Choices
+from pyprune.subset import num_elements, remove_except
 
 
 class NothingIsSolution(Backtracking):
     def __init__(self, cm: Choices) -> None:
         super().__init__(cm)
 
-    def rule_nothing_is_solution(self, cm: Choices) -> Optional[Choices]:
+    def rule_nothing_is_solution(self, cm: Choices) -> Choices | None:
         return None
 
 
@@ -25,7 +26,7 @@ class OnlyZeros(Backtracking):
     def __init__(self, cm: Choices) -> None:
         super().__init__(cm)
 
-    def rule_only_zeros(self, cm: Choices) -> Optional[Choices]:
+    def rule_only_zeros(self, cm: Choices) -> Choices | None:
         m, n = cm.shape
         ans = np.copy(cm)
         for i, j in product(range(m), range(n)):
@@ -71,9 +72,9 @@ class TestIntegration:
         assert len(problem.solutions()) == 1
 
     def test_sudoku(self):
-        sudokus = parse_file_to_sudoku(os.path.join('examples', 'sudoku.txt'))
+        sudokus = parse_file_to_sudoku(os.path.join("examples", "sudoku.txt"))
         for sudoku in sudokus[:100]:  # file has 10000 sudokus, take only 100
-            cm = np.where(sudoku, 2**sudoku, (2**10 - 2)*np.ones((9, 9)))
+            cm = np.where(sudoku, 2**sudoku, (2**10 - 2) * np.ones((9, 9)))
             problem = Sudoku(cm)
             solution = problem.solution()
             assert is_sudoku_solution(solution)

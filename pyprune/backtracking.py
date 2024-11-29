@@ -1,26 +1,28 @@
-'''Backtracking algorithm for solving constraint satisfaction problems.
+"""Backtracking algorithm for solving constraint satisfaction problems.
 
 Offers a Backtracking class that implements a backtracking algorithm.
 The class is general purpose and can be used to solve any constraint
 satisfaction puzzle. However, the class does not know the rules of any
 specific problem. Users should inherit from this class and add the rules
 of the problem.
-'''
+"""
 
-from typing import Optional, Iterator, Callable
+from collections.abc import Callable, Iterator
+
 import numpy as np
-from numpy.typing import NDArray
 from numba import njit
-from .subset import elements, smallest, num_elements_numba
+from numpy.typing import NDArray
 
-Grid = NDArray[np.uint32]     # Each element is an int
+from .subset import elements, num_elements_numba, smallest
+
+Grid = NDArray[np.uint32]  # Each element is an int
 Choices = NDArray[np.uint32]  # Each element is an int representing a set
 
 
 @njit
 def argmin_num_elements(cm: Choices) -> tuple[int, int]:
-    '''Finds i, j that minimizes the number of elements in cm[i, j],
-    subject to the condition that cm[i, j] has at least two elements.
+    """Finds i, j that minimizes the number of elements in cm[i, j], subject to
+    the condition that cm[i, j] has at least two elements.
 
     If no cell has at least two elements, then (-1, -1) is returned.
     This function is called inside expand. In that case, it's guaranteed
@@ -31,7 +33,7 @@ def argmin_num_elements(cm: Choices) -> tuple[int, int]:
 
     Returns:
         tuple[int, int]: The indices (i, j).
-    '''
+    """
     m, n = cm.shape
     min_i, min_j = -1, -1
     min_num_elements = np.inf
@@ -47,7 +49,7 @@ def argmin_num_elements(cm: Choices) -> tuple[int, int]:
 
 
 class Backtracking:
-    '''Represents a backtracking problem.
+    """Represents a backtracking problem.
 
     Usage:
         - Define new class that inherits from this class.
@@ -87,28 +89,28 @@ class Backtracking:
 
         rules(self) -> Callable[[Choices], Optional[Choices]]:
             Generator function that yields rule functions.
-    '''
+    """
 
     def __init__(self, cm: Choices) -> None:
-        '''Initializes a Backtracking object.
+        """Initializes a Backtracking object.
 
         Args:
             cm (Choices): The initial matrix of choices.
 
         Returns:
             None
-        '''
+        """
         self.cm = cm.astype(np.uint32)
 
     def solution_generator(self) -> Iterator[Grid]:
-        '''Generates solutions using backtracking algorithm.
+        """Generates solutions using backtracking algorithm.
 
         Generator that is called from the 'solution' and 'solutions'
         methods. A generator is used to prevent code duplication.
 
         Yields:
             Grid: A valid solution grid.
-        '''
+        """
         stack = [self.cm]
         while stack:
             cm = self.prune(stack.pop())
@@ -119,25 +121,25 @@ class Backtracking:
             else:
                 stack += self.expand(cm)
 
-    def solution(self) -> Optional[Grid]:
-        '''Finds a solution using a backtracking algorithm.
+    def solution(self) -> Grid | None:
+        """Finds a solution using a backtracking algorithm.
 
         Returns:
             Optional[Grid]: The solution grid if found, None otherwise.
-        '''
+        """
         return next(self.solution_generator(), None)
 
     def solutions(self) -> list[Grid]:
-        '''Returns a list of all possible solutions for the problem.
+        """Returns a list of all possible solutions for the problem.
 
         Returns:
             A list of Grid objects representing the possible solutions.
-        '''
+        """
         return list(self.solution_generator())
 
     @staticmethod
     def grid(cm: Choices) -> Grid:
-        '''Convert from a choices matrix to a grid.
+        """Convert from a choices matrix to a grid.
 
         Assumes that no element of cm is zero. When used in
         'solution_generator', this is true because of the 'accept'
@@ -148,26 +150,26 @@ class Backtracking:
 
         Returns:
             Grid: The resulting grid.
-        '''
+        """
         return np.vectorize(smallest)(cm).astype(np.uint32)
 
     @staticmethod
     @njit
     def accept(cm: Choices) -> bool:
-        '''Checks if all elements of the choice matrix are singletons.
+        """Checks if all elements of the choice matrix are singletons.
 
         Parameters:
             cm (Choices): The choice matrix to be checked.
 
         Returns:
             bool: True if all elements of cm are singletons.
-        '''
+        """
         return np.all(np.logical_and(cm, cm & (cm - 1) == 0))
 
     @staticmethod
     @njit
     def expand(cm: Choices) -> list[Choices]:
-        '''Chooses a cell and lists the possible values for that cell.
+        """Chooses a cell and lists the possible values for that cell.
 
         Expands the given choices matrix by selecting the element with
         the fewest possible choices, and creating new choice matrices
@@ -188,7 +190,7 @@ class Backtracking:
             list[Choices]: A list of new choice matrices, each
                 representing a possible choice for the element with the
                 fewest possible choices.
-        '''
+        """
         i, j = argmin_num_elements(cm)
         ans = []
         for x in elements(cm[i, j]):
@@ -197,8 +199,8 @@ class Backtracking:
             ans.append(cmx)
         return ans
 
-    def prune(self, cm: Choices) -> Optional[Choices]:
-        '''Prunes the choices based on the rules.
+    def prune(self, cm: Choices) -> Choices | None:
+        """Prunes the choices based on the rules.
 
         Loops through the rules defined by the users to either reject a
         choices matrix or prune it.
@@ -209,7 +211,7 @@ class Backtracking:
         Returns:
             Optional[Choices]: The pruned choices, or None if the rules
                 are violated.
-        '''
+        """
         prune_again = True
         while prune_again:
             cm_temp = np.copy(cm)
@@ -220,8 +222,8 @@ class Backtracking:
             prune_again = not np.array_equal(cm, cm_temp)
         return cm
 
-    def rules(self) -> Iterator[Callable[[Choices], Optional[Choices]]]:
-        '''Generator function that yields rule functions.
+    def rules(self) -> Iterator[Callable[[Choices], Choices | None]]:
+        """Generator function that yields rule functions.
 
         Constraints are defined by the user as methods of a class that
         inherits from Backtracking. A rule is a method whose name starts
@@ -242,9 +244,9 @@ class Backtracking:
         Yields:
             Callable[[Choices], Optional[Choices]]: A function
                 representing a rule of the problem.
-        '''
+        """
         for attr_name in dir(self):
-            if attr_name.startswith('rule_'):
+            if attr_name.startswith("rule_"):
                 attr_value = getattr(self, attr_name)
                 if callable(attr_value):
                     yield attr_value

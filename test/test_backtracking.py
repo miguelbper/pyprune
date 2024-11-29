@@ -1,18 +1,20 @@
-import numpy as np
 from timeit import timeit
+
+import numpy as np
 import pytest
-from pyprune.subset import (
-    smallest,
-    is_singleton,
-    num_elements,
-    subset,
-    elements,
-)
+
 from pyprune.backtracking import (
     Backtracking,
     Choices,
     Grid,
     argmin_num_elements,
+)
+from pyprune.subset import (
+    elements,
+    is_singleton,
+    num_elements,
+    smallest,
+    subset,
 )
 
 
@@ -63,7 +65,7 @@ class TestBacktracking:
         cms = Backtracking.expand(cm)
         i, j = argmin_num_elements(cm)
         assert len(cms) == num_elements(cm[i, j])
-        for cm, x in zip(cms, elements(cm[i, j])):
+        for cm, x in zip(cms, elements(cm[i, j]), strict=False):  # noqa: B020
             assert cm[i, j] == subset([x])
 
 
@@ -84,7 +86,7 @@ class TestBacktrackingNumba:
         # arrange
         n_iters = 10000
         rng = np.random.default_rng(1337)
-        cm = rng.integers(0, 2 ** 16, (10, 10), dtype=np.uint32)
+        cm = rng.integers(0, 2**16, (10, 10), dtype=np.uint32)
         func(cm)
         slow = func.py_func
         # act

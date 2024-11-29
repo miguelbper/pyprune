@@ -1,19 +1,14 @@
-from .backtracking import (  # noqa: F401
-    argmin_num_elements,
-    Backtracking,
-    Choices,
-    Grid
-)
+from .backtracking import Backtracking, Choices, Grid, argmin_num_elements  # noqa: F401
 from .subset import (  # noqa: F401
-    subset,
     elements,
-    smallest,
-    smallest_numba,
-    num_elements,
-    num_elements_numba,
     is_empty,
     is_singleton,
     is_singleton_numba,
+    num_elements,
+    num_elements_numba,
     remove,
     remove_except,
+    smallest,
+    smallest_numba,
+    subset,
 )

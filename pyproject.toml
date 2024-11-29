@@ -1,0 +1,43 @@
+[project]
+name = "pyprune"
+version = "0.1.0"
+description = "Backtracking algorithm for constraint satisfaction puzzles."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Miguel Pereira", email = "miguel.b.per@gmail.com"},
+]
+dependencies = [
+    "numba>=0.60.0",
+    "numpy>=2.0.2",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.13.0",
+    "pre-commit>=4.0.1",
+    "pytest-cov>=6.0.0",
+    "pytest>=8.3.3",
+]
+
+[tool.setuptools]
+packages = ["pyprune", "examples"]
+
+[tool.ruff]
+line-length = 99
+
+# Set of rules taken from https://docs.astral.sh/ruff/linter/#rule-selection
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle
+    "F",  # Pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM",  # flake8-simplify
+]
+
+# docformatter pre-commit hook configured so that it is able to format Sphinx style docstrings
+[tool.docformatter]
+style = "google"

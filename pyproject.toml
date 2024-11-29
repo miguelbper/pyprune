@@ -1,9 +1,13 @@
 [project]
 name = "pyprune"
 version = "0.1.0"
-description = "Add your description here"
+description = "Backtracking algorithm for constraint satisfaction puzzles."
 readme = "README.md"
 requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Miguel Pereira", email = "miguel.b.per@gmail.com"},
+]
 dependencies = [
     "numba>=0.60.0",
     "numpy>=2.0.2",

@@ -13,39 +13,8 @@ import numpy as np
 from numba import njit
 from numpy.typing import NDArray
 
-from .subset import elements, num_elements_numba
-
 Grid = NDArray[np.uint32]  # Each element is an int
 Choices = NDArray[np.uint32]  # Each element is an int representing a set
-
-
-@njit
-def argmin_num_elements(cm: Choices) -> tuple[int, int]:
-    """Finds i, j that minimizes the number of elements in cm[i, j], subject to
-    the condition that cm[i, j] has at least two elements.
-
-    If no cell has at least two elements, then (-1, -1) is returned.
-    This function is called inside expand. In that case, it's guaranteed
-    that there is at least one cell with at least two elements.
-
-    Args:
-        cm (Choices): The Choices matrix.
-
-    Returns:
-        tuple[int, int]: The indices (i, j).
-    """
-    m, n = cm.shape
-    min_i, min_j = -1, -1
-    min_num_elements = np.inf
-    for i in range(m):
-        for j in range(n):
-            n_elements = num_elements_numba(cm[i, j])
-            if n_elements == 2:
-                return i, j
-            if 1 < n_elements < min_num_elements:
-                min_i, min_j = i, j
-                min_num_elements = n_elements
-    return min_i, min_j
 
 
 class Backtracking:
@@ -192,13 +161,13 @@ class Backtracking:
                 representing a possible choice for the element with the
                 fewest possible choices.
         """
-        i, j = argmin_num_elements(cm)
-        ans = []
-        for x in elements(cm[i, j]):
-            cmx = np.copy(cm)
-            cmx[i, j] &= 1 << x  # cmx[i, j] = remove_except(cmx[i, j], x)
-            ans.append(cmx)
-        return ans
+        cardinality = np.sum((cm[..., None] & (1 << np.arange(32))) != 0, axis=-1)
+        i, j = np.unravel_index(np.argmin(cardinality), cm.shape)
+        powers_of_two = 1 << np.arange(32)
+        powers_present = powers_of_two[cm[i, j] & powers_of_two > 0]
+        cm_copies = np.repeat(cm[np.newaxis, ...], len(powers_present), axis=0)
+        cm_copies[:, i, j] = powers_present
+        return [cm_copies[k] for k in range(len(powers_present))]
 
     def prune(self, cm: Choices) -> Choices | None:
         """Prunes the choices based on the rules.

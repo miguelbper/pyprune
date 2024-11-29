@@ -2,20 +2,50 @@ from timeit import timeit
 
 import numpy as np
 import pytest
+from numba import njit
 
 from pyprune.backtracking import (
     Backtracking,
     Choices,
     Grid,
-    argmin_num_elements,
 )
 from pyprune.subset import (
     elements,
     is_singleton,
     num_elements,
+    num_elements_numba,
     smallest,
     subset,
 )
+
+
+@njit
+def argmin_num_elements(cm: Choices) -> tuple[int, int]:
+    """Finds i, j that minimizes the number of elements in cm[i, j], subject to
+    the condition that cm[i, j] has at least two elements.
+
+    If no cell has at least two elements, then (-1, -1) is returned.
+    This function is called inside expand. In that case, it's guaranteed
+    that there is at least one cell with at least two elements.
+
+    Args:
+        cm (Choices): The Choices matrix.
+
+    Returns:
+        tuple[int, int]: The indices (i, j).
+    """
+    m, n = cm.shape
+    min_i, min_j = -1, -1
+    min_num_elements = np.inf
+    for i in range(m):
+        for j in range(n):
+            n_elements = num_elements_numba(cm[i, j])
+            if n_elements == 2:
+                return i, j
+            if 1 < n_elements < min_num_elements:
+                min_i, min_j = i, j
+                min_num_elements = n_elements
+    return min_i, min_j
 
 
 class Simple:

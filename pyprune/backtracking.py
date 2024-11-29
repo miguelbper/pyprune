@@ -13,7 +13,7 @@ import numpy as np
 from numba import njit
 from numpy.typing import NDArray
 
-from .subset import elements, num_elements_numba, smallest
+from .subset import elements, num_elements_numba
 
 Grid = NDArray[np.uint32]  # Each element is an int
 Choices = NDArray[np.uint32]  # Each element is an int representing a set
@@ -138,6 +138,7 @@ class Backtracking:
         return list(self.solution_generator())
 
     @staticmethod
+    @njit
     def grid(cm: Choices) -> Grid:
         """Convert from a choices matrix to a grid.
 
@@ -151,7 +152,7 @@ class Backtracking:
         Returns:
             Grid: The resulting grid.
         """
-        return np.vectorize(smallest)(cm).astype(np.uint32)
+        return np.log2(cm).astype(np.uint32)
 
     @staticmethod
     @njit

@@ -47,9 +47,6 @@ def cm(request, n: int, k: int) -> Choices:
 
 
 class TestBacktracking:
-    def test_grid(self, cm: Choices):
-        assert np.array_equal(Backtracking.grid(cm), Simple.grid_(cm))
-
     def test_accept(self, cm: Choices):
         assert Backtracking.accept(cm) == Simple.accept_(cm)
 

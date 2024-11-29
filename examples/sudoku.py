@@ -131,53 +131,54 @@ def parse_file_to_sudoku(filename: str) -> list[Grid]:
 # Example usage
 # ----------------------------------------------------------------------
 
-# get a sudoku puzzle from the file
-sudoku = parse_file_to_sudoku(os.path.join("examples", "sudoku.txt"))[0]
-print("\nsudoku = \n", sudoku)
-# sudoku =
-# [[0 0 0 0 7 5 4 0 0]
-#  [0 0 0 0 0 0 0 0 8]
-#  [0 8 0 1 9 0 0 0 0]
-#  [3 0 0 0 0 1 0 6 0]
-#  [0 0 0 0 0 0 0 3 4]
-#  [0 0 0 0 6 8 1 7 0]
-#  [2 0 4 0 0 0 6 0 3]
-#  [9 0 0 0 0 0 0 2 0]
-#  [5 3 0 2 0 0 0 0 0]]
+if __name__ == "main":
+    # get a sudoku puzzle from the file
+    sudoku = parse_file_to_sudoku(os.path.join("examples", "sudoku.txt"))[0]
+    print("\nsudoku = \n", sudoku)
+    # sudoku =
+    # [[0 0 0 0 7 5 4 0 0]
+    #  [0 0 0 0 0 0 0 0 8]
+    #  [0 8 0 1 9 0 0 0 0]
+    #  [3 0 0 0 0 1 0 6 0]
+    #  [0 0 0 0 0 0 0 3 4]
+    #  [0 0 0 0 6 8 1 7 0]
+    #  [2 0 4 0 0 0 6 0 3]
+    #  [9 0 0 0 0 0 0 2 0]
+    #  [5 3 0 2 0 0 0 0 0]]
 
-# define the choices matrix
-# if cell (i, j) is filled with value x, then cm[i, j] = 1 << x
-# if cell (i, j) is empty, then cm[i, j] = 0b1111111110 = 2**10 - 2 = 1022
-# in more complicated cases, can use subset.subset([x1, x2, ..., xk])
-cm = np.where(sudoku, 2**sudoku, (2**10 - 2) * np.ones((9, 9))).astype(np.uint32)
-print("\ncm = \n", cm)
-# Cm = [[1022 1022 1022 1022  128   32   16 1022 1022] [1022 1022 1022 1022
-# 1022 1022 1022 1022  256] [1022  256 1022    2  512 1022 1022 1022 1022] [   8
-# 1022 1022 1022 1022    2 1022   64 1022] [1022 1022 1022 1022 1022 1022 1022 8
-# 16] [1022 1022 1022 1022   64  256    2  128 1022] [   4 1022   16 1022 1022
-# 1022   64 1022    8] [ 512 1022 1022 1022 1022 1022 1022    4 1022] [  32 8
-# 1022    4 1022 1022 1022 1022 1022]]
+    # define the choices matrix
+    # if cell (i, j) is filled with value x, then cm[i, j] = 1 << x
+    # if cell (i, j) is empty, then cm[i, j] = 0b1111111110 = 2**10 - 2 = 1022
+    # in more complicated cases, can use subset.subset([x1, x2, ..., xk])
+    cm = np.where(sudoku, 2**sudoku, (2**10 - 2) * np.ones((9, 9))).astype(np.uint32)
+    print("\ncm = \n", cm)
+    # Cm = [[1022 1022 1022 1022  128   32   16 1022 1022] [1022 1022 1022 1022
+    # 1022 1022 1022 1022  256] [1022  256 1022    2  512 1022 1022 1022 1022] [   8
+    # 1022 1022 1022 1022    2 1022   64 1022] [1022 1022 1022 1022 1022 1022 1022 8
+    # 16] [1022 1022 1022 1022   64  256    2  128 1022] [   4 1022   16 1022 1022
+    # 1022   64 1022    8] [ 512 1022 1022 1022 1022 1022 1022    4 1022] [  32 8
+    # 1022    4 1022 1022 1022 1022 1022]]
 
-# create a Sudoku object / problem
-problem = Sudoku(cm)
+    # create a Sudoku object / problem
+    problem = Sudoku(cm)
 
-# find solutions to the problem
-solutions = problem.solutions()
-n_solutions = len(solutions)
-solution = solutions[0]
-correct = is_sudoku_solution(solution)
-print(f"\n{n_solutions = }")
-print(f"{correct = }")
-print("solution = \n", solution)
-n_solutions = 1
-correct = True
-# solution =
-# [[6 9 3 8 7 5 4 1 2]
-#  [1 4 5 6 3 2 7 9 8]
-#  [7 8 2 1 9 4 3 5 6]
-#  [3 5 7 4 2 1 8 6 9]
-#  [8 1 6 9 5 7 2 3 4]
-#  [4 2 9 3 6 8 1 7 5]
-#  [2 7 4 5 1 9 6 8 3]
-#  [9 6 8 7 4 3 5 2 1]
-#  [5 3 1 2 8 6 9 4 7]]
+    # find solutions to the problem
+    solutions = problem.solutions()
+    n_solutions = len(solutions)
+    solution = solutions[0]
+    correct = is_sudoku_solution(solution)
+    print(f"\n{n_solutions = }")
+    print(f"{correct = }")
+    print("solution = \n", solution)
+    n_solutions = 1
+    correct = True
+    # solution =
+    # [[6 9 3 8 7 5 4 1 2]
+    #  [1 4 5 6 3 2 7 9 8]
+    #  [7 8 2 1 9 4 3 5 6]
+    #  [3 5 7 4 2 1 8 6 9]
+    #  [8 1 6 9 5 7 2 3 4]
+    #  [4 2 9 3 6 8 1 7 5]
+    #  [2 7 4 5 1 9 6 8 3]
+    #  [9 6 8 7 4 3 5 2 1]
+    #  [5 3 1 2 8 6 9 4 7]]

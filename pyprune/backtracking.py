@@ -162,12 +162,21 @@ class Backtracking:
                 fewest possible choices.
         """
         cardinality = np.sum((cm[..., None] & (1 << np.arange(32))) != 0, axis=-1)
-        i, j = np.unravel_index(np.argmin(cardinality), cm.shape)
+        idx = np.argmin(cardinality)
+
         powers_of_two = 1 << np.arange(32)
-        powers_present = powers_of_two[cm[i, j] & powers_of_two > 0]
-        cm_copies = np.repeat(cm[np.newaxis, ...], len(powers_present), axis=0)
-        cm_copies[:, i, j] = powers_present
-        return [cm_copies[k] for k in range(len(powers_present))]
+        powers_present = powers_of_two[cm.flat[idx] & powers_of_two > 0]
+        num_copies = len(powers_present)
+        if not num_copies:
+            return [cm for _ in range(0)]
+
+        cm_copies = np.repeat(cm, num_copies)
+
+        cm_copies = np.reshape(cm_copies, (num_copies, -1))
+        cm_copies[:, idx] = powers_present
+        cm_copies = np.reshape(cm_copies, (num_copies,) + cm.shape)
+
+        return [cm_copies[k] for k in range(num_copies)]
 
     def prune(self, cm: Choices) -> Choices | None:
         """Prunes the choices based on the rules.

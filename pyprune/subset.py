@@ -138,7 +138,7 @@ def is_singleton(s: int) -> bool:
     Returns:
         bool: True if the integer is a power of 2, False otherwise.
     """
-    return s and s & (s - 1) == 0
+    return bool(s and s & (s - 1) == 0)
 
 
 @njit
@@ -155,7 +155,7 @@ def is_singleton_numba(s: int) -> bool:
     Returns:
         bool: True if the integer is a power of 2, False otherwise.
     """
-    return s and s & (s - 1) == 0
+    return bool(s and s & (s - 1) == 0)
 
 
 def remove(s: int, x: int) -> int:

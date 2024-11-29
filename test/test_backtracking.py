@@ -25,7 +25,7 @@ class Simple:
         return arr.astype(np.uint32)
 
     @staticmethod
-    def accept_(cm: Choices) -> bool:
+    def accept_(cm: Choices) -> np.bool:
         bool_arr = np.array([[is_singleton(s) for s in row] for row in cm])
         return np.all(bool_arr)
 

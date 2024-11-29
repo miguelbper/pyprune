@@ -156,7 +156,7 @@ class Backtracking:
 
     @staticmethod
     @njit
-    def accept(cm: Choices) -> bool:
+    def accept(cm: Choices) -> np.bool:
         """Checks if all elements of the choice matrix are singletons.
 
         Parameters:
@@ -217,9 +217,10 @@ class Backtracking:
         while prune_again:
             cm_temp = np.copy(cm)
             for func in self.rules():
-                cm = func(cm)
-                if cm is None or not np.all(cm):
+                cm_new = func(cm)
+                if cm_new is None or not np.all(cm_new):
                     return None
+                cm = cm_new
             prune_again = not np.array_equal(cm, cm_temp)
         return cm
 

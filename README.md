@@ -28,7 +28,7 @@ Strictly speaking, `cm[i, j]` is not a set but an integer representing that set.
 
 See `examples/sudoku.py`.
 
-**Step 1.** Implement a class with the rules of the puzzle. Rules are methods of the class with name `rule_*`. Each method has signature `def rule_*(cm: Choices) -> Optional[Choices]`.
+**Step 1.** Implement a class with the rules of the puzzle. Rules are methods of the class with name `rule_*`. Each method has signature `def rule_*(cm: Choices) -> Optional[Choices]`. Hint: make use of `numpy` and `numba` to obtain better performance.
 ```python
 class Sudoku(Backtracking):
     '''A class representing the Sudoku puzzle solver.

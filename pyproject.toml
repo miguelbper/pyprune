@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "pyprune"
-version = "0.1.0"
+version = "0.1.1"
 description = "Backtracking algorithm for constraint satisfaction puzzles."
 readme = "README.md"
 requires-python = ">=3.10"

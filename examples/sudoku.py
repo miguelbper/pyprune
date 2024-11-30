@@ -4,7 +4,6 @@ import numpy as np
 from numba import njit
 
 from pyprune.backtracking import Backtracking, Choices, Grid
-from pyprune.subset import is_singleton_numba, smallest_numba
 
 
 # The class that should be implemented to solve a Sudoku puzzle
@@ -44,27 +43,15 @@ class Sudoku(Backtracking):
         cm = np.copy(cm)
         for i in range(9):
             for j in range(9):
-                if is_singleton_numba(cm[i, j]):
-                    x = smallest_numba(cm[i, j])
-
-                    # remove x from row
-                    for k in range(9):
-                        if k != j:
-                            cm[i, k] &= ~(1 << x)
-
-                    # remove x from column
-                    for k in range(9):
-                        if k != i:
-                            cm[k, j] &= ~(1 << x)
-
-                    # remove x from box
-                    box_i, box_j = 3 * (i // 3), 3 * (j // 3)
-                    for di in range(3):
-                        for dj in range(3):
-                            i_ = box_i + di
-                            j_ = box_j + dj
-                            if not (i_ == i and j_ == j):
-                                cm[i_, j_] &= ~(1 << x)
+                c = cm[i, j]
+                if c and c & (c - 1) == 0:
+                    mask = ~c
+                    u = (i // 3) * 3
+                    v = (j // 3) * 3
+                    cm[i, :] &= mask
+                    cm[:, j] &= mask
+                    cm[u : u + 3, v : v + 3] &= mask
+                    cm[i, j] = c
         return cm
 
 

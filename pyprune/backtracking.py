@@ -24,6 +24,7 @@ class Backtracking:
         - Define new class that inherits from this class.
         - Override __init__ to specify problem constants.
         - Define the rules as methods of the new class.
+        - Optionally override expand.
         - Instantiate by providing initial choices matrix.
         - Call 'solution' or 'solutions' to find the solution(s).
 
@@ -111,7 +112,7 @@ class Backtracking:
     def grid(cm: Choices) -> Grid:
         """Convert from a choices matrix to a grid.
 
-        Assumes that no element of cm is zero. When used in
+        Assumes that all elements of cm are singletons. When used in
         'solution_generator', this is true because of the 'accept'
         function.
 
@@ -126,12 +127,23 @@ class Backtracking:
     @staticmethod
     @njit
     def reject(cm: Choices | None) -> np.bool:
+        """Checks if the choice matrix is invalid.
+
+        Parameters:
+            cm (Choices | None): The choice matrix to be checked.
+
+        Returns:
+            bool: True if cm is None or contains a 0.
+        """
         return cm is None or not np.all(cm)
 
     @staticmethod
     @njit
     def accept(cm: Choices) -> np.bool:
         """Checks if all elements of the choice matrix are singletons.
+
+        Assumes that cm does not contain a 0, which is true when this
+        function is called in 'solution_generator'.
 
         Parameters:
             cm (Choices): The choice matrix to be checked.
@@ -151,11 +163,16 @@ class Backtracking:
 
         This function may optionally be overridden by the user to make
         more informed guesses for the list of possible choice matrices.
-        To do this, implement expand in the child class. The input is
-        the current choices matrix, and the output is a list of possible
-        prunings of the choices matrix, such that for every solution of
-        the problem, there exists a pruning in the list that contains
-        the solution.
+
+        When overriding, you may make use of the following assumptions:
+        - cm was not rejected => np.all(cm), i.e. no zeros in cm
+        - cm was not accepted => there exists a cell of cm with c > 1
+
+        When overriding, you must respect the following properties:
+        If ems = expand(cm), then
+        - Refinement: For all em in ems, em ⊊ cm
+        - No solutions are lost: For all solutions xm ⊂ cm, there
+          exists em in ems such that xm ⊂ em
 
         Args:
             cm (Choices): The choices matrix to expand.
@@ -211,11 +228,11 @@ class Backtracking:
             def rule_my_rule(self, cm: Choices) -> Optional[Choices]:
                 ...
 
-        with the following properties (cm = input, om = output):
-            - if the rule is violated, return None
-            - For all i, j: om[i, j] ⊆ cm[i, j] (only remove elements)
-            - If a filled grid which is a subset of cm satisfies the
-              rule, then the filled grid is also a subset of om.
+        with the following properties (om = rule_my_rule(cm)):
+        - Refinement: om ⊂ cm
+        - No solutions are lost: xm ⊂ cm satisfies the rule => xm ⊂ om
+        - Eventual rejection: If cm is all singletons and does not
+          satisfy the rule, then reject(om) is True
 
         Yields:
             Callable[[Choices], Optional[Choices]]: A function

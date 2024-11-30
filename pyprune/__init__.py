@@ -1,4 +1,4 @@
-from .backtracking import Backtracking, Choices, Grid, argmin_num_elements  # noqa: F401
+from .backtracking import Backtracking, Choices, Grid  # noqa: F401
 from .subset import (  # noqa: F401
     elements,
     is_empty,

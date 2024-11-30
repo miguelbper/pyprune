@@ -13,39 +13,8 @@ import numpy as np
 from numba import njit
 from numpy.typing import NDArray
 
-from .subset import elements, num_elements_numba, smallest
-
 Grid = NDArray[np.uint32]  # Each element is an int
 Choices = NDArray[np.uint32]  # Each element is an int representing a set
-
-
-@njit
-def argmin_num_elements(cm: Choices) -> tuple[int, int]:
-    """Finds i, j that minimizes the number of elements in cm[i, j], subject to
-    the condition that cm[i, j] has at least two elements.
-
-    If no cell has at least two elements, then (-1, -1) is returned.
-    This function is called inside expand. In that case, it's guaranteed
-    that there is at least one cell with at least two elements.
-
-    Args:
-        cm (Choices): The Choices matrix.
-
-    Returns:
-        tuple[int, int]: The indices (i, j).
-    """
-    m, n = cm.shape
-    min_i, min_j = -1, -1
-    min_num_elements = np.inf
-    for i in range(m):
-        for j in range(n):
-            n_elements = num_elements_numba(cm[i, j])
-            if n_elements == 2:
-                return i, j
-            if 1 < n_elements < min_num_elements:
-                min_i, min_j = i, j
-                min_num_elements = n_elements
-    return min_i, min_j
 
 
 class Backtracking:
@@ -55,6 +24,7 @@ class Backtracking:
         - Define new class that inherits from this class.
         - Override __init__ to specify problem constants.
         - Define the rules as methods of the new class.
+        - Optionally override expand.
         - Instantiate by providing initial choices matrix.
         - Call 'solution' or 'solutions' to find the solution(s).
 
@@ -138,10 +108,11 @@ class Backtracking:
         return list(self.solution_generator())
 
     @staticmethod
+    @njit
     def grid(cm: Choices) -> Grid:
         """Convert from a choices matrix to a grid.
 
-        Assumes that no element of cm is zero. When used in
+        Assumes that all elements of cm are singletons. When used in
         'solution_generator', this is true because of the 'accept'
         function.
 
@@ -151,12 +122,28 @@ class Backtracking:
         Returns:
             Grid: The resulting grid.
         """
-        return np.vectorize(smallest)(cm).astype(np.uint32)
+        return np.log2(cm).astype(np.uint32)
 
     @staticmethod
     @njit
-    def accept(cm: Choices) -> bool:
+    def reject(cm: Choices | None) -> bool:
+        """Checks if the choice matrix is invalid.
+
+        Parameters:
+            cm (Choices | None): The choice matrix to be checked.
+
+        Returns:
+            bool: True if cm is None or contains a 0.
+        """
+        return cm is None or not np.all(cm)
+
+    @staticmethod
+    @njit
+    def accept(cm: Choices) -> np.bool:
         """Checks if all elements of the choice matrix are singletons.
+
+        Assumes that cm does not contain a 0, which is true when this
+        function is called in 'solution_generator'.
 
         Parameters:
             cm (Choices): The choice matrix to be checked.
@@ -164,10 +151,9 @@ class Backtracking:
         Returns:
             bool: True if all elements of cm are singletons.
         """
-        return np.all(np.logical_and(cm, cm & (cm - 1) == 0))
+        return np.all(cm & (cm - 1) == 0)
 
     @staticmethod
-    @njit
     def expand(cm: Choices) -> list[Choices]:
         """Chooses a cell and lists the possible values for that cell.
 
@@ -177,11 +163,16 @@ class Backtracking:
 
         This function may optionally be overridden by the user to make
         more informed guesses for the list of possible choice matrices.
-        To do this, implement expand in the child class. The input is
-        the current choices matrix, and the output is a list of possible
-        prunings of the choices matrix, such that for every solution of
-        the problem, there exists a pruning in the list that contains
-        the solution.
+
+        When overriding, you may make use of the following assumptions:
+        - cm was not rejected => np.all(cm), i.e. no zeros in cm
+        - cm was not accepted => there exists a cell of cm with c > 1
+
+        When overriding, you must respect the following properties:
+        If ems = expand(cm), then
+        - Refinement: For all em in ems, em ⊊ cm
+        - No solutions are lost: For all solutions xm ⊂ cm, there
+          exists em in ems such that xm ⊂ em
 
         Args:
             cm (Choices): The choices matrix to expand.
@@ -191,13 +182,14 @@ class Backtracking:
                 representing a possible choice for the element with the
                 fewest possible choices.
         """
-        i, j = argmin_num_elements(cm)
-        ans = []
-        for x in elements(cm[i, j]):
-            cmx = np.copy(cm)
-            cmx[i, j] &= 1 << x  # cmx[i, j] = remove_except(cmx[i, j], x)
-            ans.append(cmx)
-        return ans
+        powers_of_two = 1 << np.arange(32)
+        cardinality = np.sum((cm[..., None] & powers_of_two) != 0, axis=-1)
+        cardinality_unfilled = np.where(cardinality == 1, np.inf, cardinality)
+        multi_index = np.unravel_index(np.argmin(cardinality_unfilled), cm.shape)
+        powers_present = powers_of_two[cm[multi_index] & powers_of_two > 0]
+        cm_copies = np.repeat(cm[np.newaxis, ...], len(powers_present), axis=0)
+        cm_copies[:, *multi_index] = powers_present
+        return list(cm_copies)
 
     def prune(self, cm: Choices) -> Choices | None:
         """Prunes the choices based on the rules.
@@ -216,9 +208,10 @@ class Backtracking:
         while prune_again:
             cm_temp = np.copy(cm)
             for func in self.rules():
-                cm = func(cm)
-                if cm is None or not np.all(cm):
+                cm_new = func(cm)
+                if self.reject(cm_new):
                     return None
+                cm = cm_new  # type: ignore[assignment]
             prune_again = not np.array_equal(cm, cm_temp)
         return cm
 
@@ -235,11 +228,11 @@ class Backtracking:
             def rule_my_rule(self, cm: Choices) -> Optional[Choices]:
                 ...
 
-        with the following properties (cm = input, om = output):
-            - if the rule is violated, return None
-            - For all i, j: om[i, j] ⊆ cm[i, j] (only remove elements)
-            - If a filled grid which is a subset of cm satisfies the
-              rule, then the filled grid is also a subset of om.
+        with the following properties (om = rule_my_rule(cm)):
+        - Refinement: om ⊂ cm
+        - No solutions are lost: xm ⊂ cm satisfies the rule => xm ⊂ om
+        - Eventual rejection: If cm is all singletons and does not
+          satisfy the rule, then reject(om) is True
 
         Yields:
             Callable[[Choices], Optional[Choices]]: A function

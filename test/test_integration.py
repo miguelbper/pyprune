@@ -68,7 +68,9 @@ class TestIntegration:
         ones = np.ones(cm.shape, dtype=np.uint32)
         cm += np.where(cm % 2, zeros, ones)
         problem = OnlyZeros(cm)
-        assert np.array_equal(problem.solution(), zeros)
+        soln = problem.solution()
+        assert soln is not None
+        assert np.array_equal(soln, zeros)
         assert len(problem.solutions()) == 1
 
     def test_sudoku(self):

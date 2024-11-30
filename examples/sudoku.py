@@ -4,7 +4,6 @@ import numpy as np
 from numba import njit
 
 from pyprune.backtracking import Backtracking, Choices, Grid
-from pyprune.subset import is_singleton_numba, smallest_numba
 
 
 # The class that should be implemented to solve a Sudoku puzzle
@@ -20,9 +19,6 @@ class Sudoku(Backtracking):
         rule_sudoku(cm: Choices) -> Optional[Choices]: Applies the rules
             of Sudoku to the choices matrix.
     """
-
-    def __init__(self, cm: Choices) -> None:
-        super().__init__(cm)
 
     @staticmethod
     @njit
@@ -44,27 +40,15 @@ class Sudoku(Backtracking):
         cm = np.copy(cm)
         for i in range(9):
             for j in range(9):
-                if is_singleton_numba(cm[i, j]):
-                    x = smallest_numba(cm[i, j])
-
-                    # remove x from row
-                    for k in range(9):
-                        if k != j:
-                            cm[i, k] &= ~(1 << x)
-
-                    # remove x from column
-                    for k in range(9):
-                        if k != i:
-                            cm[k, j] &= ~(1 << x)
-
-                    # remove x from box
-                    box_i, box_j = 3 * (i // 3), 3 * (j // 3)
-                    for di in range(3):
-                        for dj in range(3):
-                            i_ = box_i + di
-                            j_ = box_j + dj
-                            if not (i_ == i and j_ == j):
-                                cm[i_, j_] &= ~(1 << x)
+                c = cm[i, j]
+                if c and c & (c - 1) == 0:
+                    mask = ~c
+                    u = (i // 3) * 3
+                    v = (j // 3) * 3
+                    cm[i, :] &= mask
+                    cm[:, j] &= mask
+                    cm[u : u + 3, v : v + 3] &= mask
+                    cm[i, j] = c
         return cm
 
 
@@ -131,53 +115,54 @@ def parse_file_to_sudoku(filename: str) -> list[Grid]:
 # Example usage
 # ----------------------------------------------------------------------
 
-# get a sudoku puzzle from the file
-sudoku = parse_file_to_sudoku(os.path.join("examples", "sudoku.txt"))[0]
-print("\nsudoku = \n", sudoku)
-# sudoku =
-# [[0 0 0 0 7 5 4 0 0]
-#  [0 0 0 0 0 0 0 0 8]
-#  [0 8 0 1 9 0 0 0 0]
-#  [3 0 0 0 0 1 0 6 0]
-#  [0 0 0 0 0 0 0 3 4]
-#  [0 0 0 0 6 8 1 7 0]
-#  [2 0 4 0 0 0 6 0 3]
-#  [9 0 0 0 0 0 0 2 0]
-#  [5 3 0 2 0 0 0 0 0]]
+if __name__ == "main":
+    # get a sudoku puzzle from the file
+    sudoku = parse_file_to_sudoku(os.path.join("examples", "sudoku.txt"))[0]
+    print("\nsudoku = \n", sudoku)
+    # sudoku =
+    # [[0 0 0 0 7 5 4 0 0]
+    #  [0 0 0 0 0 0 0 0 8]
+    #  [0 8 0 1 9 0 0 0 0]
+    #  [3 0 0 0 0 1 0 6 0]
+    #  [0 0 0 0 0 0 0 3 4]
+    #  [0 0 0 0 6 8 1 7 0]
+    #  [2 0 4 0 0 0 6 0 3]
+    #  [9 0 0 0 0 0 0 2 0]
+    #  [5 3 0 2 0 0 0 0 0]]
 
-# define the choices matrix
-# if cell (i, j) is filled with value x, then cm[i, j] = 1 << x
-# if cell (i, j) is empty, then cm[i, j] = 0b1111111110 = 2**10 - 2 = 1022
-# in more complicated cases, can use subset.subset([x1, x2, ..., xk])
-cm = np.where(sudoku, 2**sudoku, (2**10 - 2) * np.ones((9, 9))).astype(np.uint32)
-print("\ncm = \n", cm)
-# Cm = [[1022 1022 1022 1022  128   32   16 1022 1022] [1022 1022 1022 1022
-# 1022 1022 1022 1022  256] [1022  256 1022    2  512 1022 1022 1022 1022] [   8
-# 1022 1022 1022 1022    2 1022   64 1022] [1022 1022 1022 1022 1022 1022 1022 8
-# 16] [1022 1022 1022 1022   64  256    2  128 1022] [   4 1022   16 1022 1022
-# 1022   64 1022    8] [ 512 1022 1022 1022 1022 1022 1022    4 1022] [  32 8
-# 1022    4 1022 1022 1022 1022 1022]]
+    # define the choices matrix
+    # if cell (i, j) is filled with value x, then cm[i, j] = 1 << x
+    # if cell (i, j) is empty, then cm[i, j] = 0b1111111110 = 2**10 - 2 = 1022
+    # in more complicated cases, can use subset.subset([x1, x2, ..., xk])
+    cm = np.where(sudoku, 2**sudoku, (2**10 - 2) * np.ones((9, 9))).astype(np.uint32)
+    print("\ncm = \n", cm)
+    # Cm = [[1022 1022 1022 1022  128   32   16 1022 1022] [1022 1022 1022 1022
+    # 1022 1022 1022 1022  256] [1022  256 1022    2  512 1022 1022 1022 1022] [   8
+    # 1022 1022 1022 1022    2 1022   64 1022] [1022 1022 1022 1022 1022 1022 1022 8
+    # 16] [1022 1022 1022 1022   64  256    2  128 1022] [   4 1022   16 1022 1022
+    # 1022   64 1022    8] [ 512 1022 1022 1022 1022 1022 1022    4 1022] [  32 8
+    # 1022    4 1022 1022 1022 1022 1022]]
 
-# create a Sudoku object / problem
-problem = Sudoku(cm)
+    # create a Sudoku object / problem
+    problem = Sudoku(cm)
 
-# find solutions to the problem
-solutions = problem.solutions()
-n_solutions = len(solutions)
-solution = solutions[0]
-correct = is_sudoku_solution(solution)
-print(f"\n{n_solutions = }")
-print(f"{correct = }")
-print("solution = \n", solution)
-n_solutions = 1
-correct = True
-# solution =
-# [[6 9 3 8 7 5 4 1 2]
-#  [1 4 5 6 3 2 7 9 8]
-#  [7 8 2 1 9 4 3 5 6]
-#  [3 5 7 4 2 1 8 6 9]
-#  [8 1 6 9 5 7 2 3 4]
-#  [4 2 9 3 6 8 1 7 5]
-#  [2 7 4 5 1 9 6 8 3]
-#  [9 6 8 7 4 3 5 2 1]
-#  [5 3 1 2 8 6 9 4 7]]
+    # find solutions to the problem
+    solutions = problem.solutions()
+    n_solutions = len(solutions)
+    solution = solutions[0]
+    correct = is_sudoku_solution(solution)
+    print(f"\n{n_solutions = }")
+    print(f"{correct = }")
+    print("solution = \n", solution)
+    n_solutions = 1
+    correct = True
+    # solution =
+    # [[6 9 3 8 7 5 4 1 2]
+    #  [1 4 5 6 3 2 7 9 8]
+    #  [7 8 2 1 9 4 3 5 6]
+    #  [3 5 7 4 2 1 8 6 9]
+    #  [8 1 6 9 5 7 2 3 4]
+    #  [4 2 9 3 6 8 1 7 5]
+    #  [2 7 4 5 1 9 6 8 3]
+    #  [9 6 8 7 4 3 5 2 1]
+    #  [5 3 1 2 8 6 9 4 7]]

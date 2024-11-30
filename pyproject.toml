@@ -11,6 +11,7 @@ authors = [
 dependencies = [
     "numba>=0.60.0",
     "numpy>=2.0.2",
+    "tqdm>=4.67.1",
 ]
 
 [dependency-groups]

@@ -38,7 +38,7 @@ def cm(request, n: int, k: int) -> Choices:
 @pytest.fixture(params=list(range(5)), ids=lambda x: f"[seed={x}]")
 def cm_singletons(request, n: int, k: int) -> Choices:
     rng = np.random.default_rng(request.param)
-    return 2 ** rng.integers(0, k, (n, n), dtype=np.uint32)
+    return np.pow(2, rng.integers(0, k, (n, n), dtype=np.uint32))
 
 
 @pytest.fixture(params=list(range(5)), ids=lambda x: f"[seed={x}]")
@@ -68,8 +68,8 @@ class TestBacktracking:
         comparison = comparisons[0]
         assert np.all(comparisons == comparison)
         assert np.sum(~comparison) == 1
-        multi_index = np.where(~comparison)
-        assert np.sum(cms[:, *multi_index]) == cm_nonzeros[multi_index]
+        i, j = np.where(~comparison)
+        assert np.sum(cms[:, i, j]) == cm_nonzeros[i, j]
 
 
 numba_functions = [

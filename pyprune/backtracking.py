@@ -126,7 +126,7 @@ class Backtracking:
 
     @staticmethod
     @njit
-    def reject(cm: Choices | None) -> np.bool:
+    def reject(cm: Choices | None) -> bool:
         """Checks if the choice matrix is invalid.
 
         Parameters:
@@ -211,7 +211,7 @@ class Backtracking:
                 cm_new = func(cm)
                 if self.reject(cm_new):
                     return None
-                cm = cm_new
+                cm = cm_new  # type: ignore[assignment]
             prune_again = not np.array_equal(cm, cm_temp)
         return cm
 

@@ -20,9 +20,6 @@ class Sudoku(Backtracking):
             of Sudoku to the choices matrix.
     """
 
-    def __init__(self, cm: Choices) -> None:
-        super().__init__(cm)
-
     @staticmethod
     @njit
     def rule_sudoku(cm: Choices) -> Choices | None:

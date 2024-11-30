@@ -31,7 +31,7 @@ See `examples/sudoku.py`.
 **Step 1.** Implement a class with the rules of the puzzle. Rules are methods of the class with name `rule_*`. Each method has signature `def rule_*(cm: Choices) -> Optional[Choices]`. Hint: make use of `numpy` and `numba` to obtain better performance.
 ```python
 class Sudoku(Backtracking):
-    '''A class representing the Sudoku puzzle solver.
+    """A class representing the Sudoku puzzle solver.
 
     Inherits from the `Backtracking` class.
 
@@ -41,14 +41,11 @@ class Sudoku(Backtracking):
     Methods:
         rule_sudoku(cm: Choices) -> Optional[Choices]: Applies the rules
             of Sudoku to the choices matrix.
-    '''
-    def __init__(self, cm: Choices) -> None:
-        super().__init__(cm)
-
+    """
     @staticmethod
     @njit
-    def rule_sudoku(cm: Choices) -> Optional[Choices]:
-        '''Applies the rules of Sudoku.
+    def rule_sudoku(cm: Choices) -> Choices | None:
+        """Applies the rules of Sudoku.
 
         If a cell (i, j) has value x, then
         - remove x from the other cells in the same row
@@ -61,31 +58,19 @@ class Sudoku(Backtracking):
         Returns:
             Optional[Choices]: The updated choices matrix after applying
                 the Sudoku rules.
-        '''
+        """
         cm = np.copy(cm)
         for i in range(9):
             for j in range(9):
-                if is_singleton_numba(cm[i, j]):
-                    x = smallest_numba(cm[i, j])
-
-                    # remove x from row
-                    for k in range(9):
-                        if k != j:
-                            cm[i, k] &= ~(1 << x)
-
-                    # remove x from column
-                    for k in range(9):
-                        if k != i:
-                            cm[k, j] &= ~(1 << x)
-
-                    # remove x from box
-                    box_i, box_j = 3 * (i // 3), 3 * (j // 3)
-                    for di in range(3):
-                        for dj in range(3):
-                            i_ = box_i + di
-                            j_ = box_j + dj
-                            if not (i_ == i and j_ == j):
-                                cm[i_, j_] &= ~(1 << x)
+                c = cm[i, j]
+                if c and c & (c - 1) == 0:
+                    mask = ~c
+                    u = (i // 3) * 3
+                    v = (j // 3) * 3
+                    cm[i, :] &= mask
+                    cm[:, j] &= mask
+                    cm[u : u + 3, v : v + 3] &= mask
+                    cm[i, j] = c
         return cm
 ```
 

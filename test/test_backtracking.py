@@ -37,7 +37,8 @@ def cm(request, n: int, k: int) -> Choices:
 
 class TestBacktracking:
     def test_accept(self, cm: Choices):
-        assert Backtracking.accept(cm) == Simple.accept_(cm)
+        if np.all(cm):
+            assert Backtracking.accept(cm) == Simple.accept_(cm)
 
     def test_expand(self, cm: Choices):
         if np.all(cm) and not np.all(np.logical_and(cm, cm & (cm - 1) == 0)):

@@ -125,6 +125,11 @@ class Backtracking:
 
     @staticmethod
     @njit
+    def reject(cm: Choices | None) -> np.bool:
+        return cm is None or not np.all(cm)
+
+    @staticmethod
+    @njit
     def accept(cm: Choices) -> np.bool:
         """Checks if all elements of the choice matrix are singletons.
 
@@ -134,7 +139,7 @@ class Backtracking:
         Returns:
             bool: True if all elements of cm are singletons.
         """
-        return np.all(np.logical_and(cm, cm & (cm - 1) == 0))
+        return np.all(cm & (cm - 1) == 0)
 
     @staticmethod
     def expand(cm: Choices) -> list[Choices]:
@@ -162,8 +167,8 @@ class Backtracking:
         """
         powers_of_two = 1 << np.arange(32)
         cardinality = np.sum((cm[..., None] & powers_of_two) != 0, axis=-1)
-        cardinality = np.where(cardinality == 1, np.inf, cardinality)
-        multi_index = np.unravel_index(np.argmin(cardinality), cm.shape)
+        cardinality_unfilled = np.where(cardinality == 1, np.inf, cardinality)
+        multi_index = np.unravel_index(np.argmin(cardinality_unfilled), cm.shape)
         powers_present = powers_of_two[cm[multi_index] & powers_of_two > 0]
         cm_copies = np.repeat(cm[np.newaxis, ...], len(powers_present), axis=0)
         cm_copies[:, *multi_index] = powers_present
@@ -187,7 +192,7 @@ class Backtracking:
             cm_temp = np.copy(cm)
             for func in self.rules():
                 cm_new = func(cm)
-                if cm_new is None or not np.all(cm_new):
+                if self.reject(cm_new):
                     return None
                 cm = cm_new
             prune_again = not np.array_equal(cm, cm_temp)

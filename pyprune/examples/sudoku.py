@@ -115,9 +115,9 @@ def parse_file_to_sudoku(filename: str) -> list[Grid]:
 # Example usage
 # ----------------------------------------------------------------------
 
-if __name__ == "main":
+if __name__ == "__main__":
     # get a sudoku puzzle from the file
-    sudoku = parse_file_to_sudoku(os.path.join("examples", "sudoku.txt"))[0]
+    sudoku = parse_file_to_sudoku(os.path.join("pyprune", "examples", "sudoku.txt"))[0]
     print("\nsudoku = \n", sudoku)
     # sudoku =
     # [[0 0 0 0 7 5 4 0 0]

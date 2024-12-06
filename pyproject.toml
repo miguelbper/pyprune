@@ -28,7 +28,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["pyprune", "examples"]
+packages = ["pyprune"]
 
 [tool.ruff]
 line-length = 99

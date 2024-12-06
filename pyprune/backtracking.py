@@ -7,7 +7,8 @@ specific problem. Users should inherit from this class and add the rules
 of the problem.
 """
 
-from collections.abc import Callable, Iterator
+from abc import ABC, abstractmethod
+from collections.abc import Iterator
 
 import numpy as np
 from numba import njit
@@ -17,14 +18,13 @@ Grid = NDArray[np.uint32]  # Each element is an int
 Choices = NDArray[np.uint32]  # Each element is an int representing a set
 
 
-class Backtracking:
+class Backtracking(ABC):
     """Represents a backtracking problem.
 
     Usage:
-        - Define new class that inherits from this class.
-        - Override __init__ to specify problem constants.
-        - Define the rules as methods of the new class.
-        - Optionally override expand.
+        - Define a new class that inherits from this class.
+        - Define a prune method.
+        - Optionally override the expand method.
         - Instantiate by providing initial choices matrix.
         - Call 'solution' or 'solutions' to find the solution(s).
 
@@ -35,7 +35,7 @@ class Backtracking:
         __init__(self, cm: Choices) -> None:
             Initializes a Backtracking object.
 
-        solution(self) -> Optional[Grid]:
+        solution(self) -> Grid | None:
             Finds a solution using the backtracking algorithm.
 
         solutions(self) -> list[Grid]:
@@ -48,17 +48,22 @@ class Backtracking:
         grid(cm: Choices) -> Grid:
             Converts from a choices matrix to a grid.
 
-        accept(self, cm: Choices) -> bool:
+        reject(cm: Choices | None) -> bool:
+            True if cm is None or if cm has an empty cell.
+
+        accept(cm: Choices) -> bool:
             Checks if all elements of the choice matrix are singletons.
 
-        expand(self, cm: Choices) -> list[Choices]:
+        expand(cm: Choices) -> list[Choices]:
             Chooses a cell and lists the possible values for that cell.
+            Can optionally be overriden by the user.
 
-        prune(self, cm: Choices) -> Optional[Choices]:
-            Prunes the choices based on the rules.
+        prune_repeatedly(self, cm: Choices) -> Choices | None:
+            Repeatedly calls prune, until cm is no longer changed.
 
-        rules(self) -> Callable[[Choices], Optional[Choices]]:
-            Generator function that yields rule functions.
+        prune(cm: Choices) -> Choices | None:
+            Defines the rules of the problem. Should be implemented by
+            the user.
     """
 
     def __init__(self, cm: Choices) -> None:
@@ -83,7 +88,7 @@ class Backtracking:
         """
         stack = [self.cm]
         while stack:
-            cm = self.prune(stack.pop())
+            cm = self.prune_repeatedly(stack.pop())
             if cm is None:
                 continue
             if self.accept(cm):
@@ -95,7 +100,7 @@ class Backtracking:
         """Finds a solution using a backtracking algorithm.
 
         Returns:
-            Optional[Grid]: The solution grid if found, None otherwise.
+            Grid | None: The solution grid if found, None otherwise.
         """
         return next(self.solution_generator(), None)
 
@@ -116,7 +121,7 @@ class Backtracking:
         'solution_generator', this is true because of the 'accept'
         function.
 
-        Parameters:
+        Args:
             cm (Choices): The input choices matrix.
 
         Returns:
@@ -129,7 +134,7 @@ class Backtracking:
     def reject(cm: Choices | None) -> bool:
         """Checks if the choice matrix is invalid.
 
-        Parameters:
+        Args:
             cm (Choices | None): The choice matrix to be checked.
 
         Returns:
@@ -145,7 +150,7 @@ class Backtracking:
         Assumes that cm does not contain a 0, which is true when this
         function is called in 'solution_generator'.
 
-        Parameters:
+        Args:
             cm (Choices): The choice matrix to be checked.
 
         Returns:
@@ -191,55 +196,47 @@ class Backtracking:
         cm_copies[:, *multi_index] = powers_present
         return list(cm_copies)
 
-    def prune(self, cm: Choices) -> Choices | None:
-        """Prunes the choices based on the rules.
-
-        Loops through the rules defined by the users to either reject a
-        choices matrix or prune it.
+    def prune_repeatedly(self, cm: Choices) -> Choices | None:
+        """Repeatedly calls prune until cm no longer changes.
 
         Args:
             cm (Choices): The choices to be pruned.
 
         Returns:
-            Optional[Choices]: The pruned choices, or None if the rules
+            Choices | None: The pruned choices, or None if the rules
                 are violated.
         """
         prune_again = True
         while prune_again:
             cm_temp = np.copy(cm)
-            for func in self.rules():
-                cm_new = func(cm)
-                if self.reject(cm_new):
-                    return None
-                cm = cm_new  # type: ignore[assignment]
+            cm_new = self.prune(cm)
+            if self.reject(cm_new):
+                return None
+            cm = cm_new  # type: ignore[assignment]
             prune_again = not np.array_equal(cm, cm_temp)
         return cm
 
-    def rules(self) -> Iterator[Callable[[Choices], Choices | None]]:
-        """Generator function that yields rule functions.
+    @staticmethod
+    @abstractmethod
+    def prune(cm: Choices) -> Choices | None:
+        """Prunes the choices matrix based on the rules of the problem.
 
-        Constraints are defined by the user as methods of a class that
-        inherits from Backtracking. A rule is a method whose name starts
-        with 'rule_', of type Callable[[Choices], Optional[Choices]].
+        Should be implemented by the user, since it is specific to the
+        problem to be solved. Should obey the following properties:
 
-        So, to define a rule, define a method in the child class as
-        follows:
-
-            def rule_my_rule(self, cm: Choices) -> Optional[Choices]:
-                ...
-
-        with the following properties (om = rule_my_rule(cm)):
+        If om = prune(cm), then
         - Refinement: om ⊂ cm
         - No solutions are lost: xm ⊂ cm satisfies the rule => xm ⊂ om
         - Eventual rejection: If cm is all singletons and does not
           satisfy the rule, then reject(om) is True
 
-        Yields:
-            Callable[[Choices], Optional[Choices]]: A function
-                representing a rule of the problem.
+        If cm will never lead to a valid solution, may just return None
+        in the implementation.
+
+        Args:
+            cm (Choices): The input choices matrix.
+
+        Returns:
+            Choices | None: Pruned matrix or None
         """
-        for attr_name in dir(self):
-            if attr_name.startswith("rule_"):
-                attr_value = getattr(self, attr_name)
-                if callable(attr_value):
-                    yield attr_value
+        pass

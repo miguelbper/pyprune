@@ -16,13 +16,13 @@ class Sudoku(Backtracking):
         cm (Choices): The initial choices matrix representing the grid.
 
     Methods:
-        rule_sudoku(cm: Choices) -> Optional[Choices]: Applies the rules
+        prune(cm: Choices) -> Optional[Choices]: Applies the rules
             of Sudoku to the choices matrix.
     """
 
     @staticmethod
     @njit
-    def rule_sudoku(cm: Choices) -> Choices | None:
+    def prune(cm: Choices) -> Choices | None:
         """Applies the rules of Sudoku.
 
         If a cell (i, j) has value x, then
@@ -34,7 +34,7 @@ class Sudoku(Backtracking):
             cm (Choices): The choices matrix representing the grid.
 
         Returns:
-            Optional[Choices]: The updated choices matrix after applying
+            Choices | None: The updated choices matrix after applying
                 the Sudoku rules.
         """
         cm = np.copy(cm)

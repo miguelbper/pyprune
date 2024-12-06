@@ -13,7 +13,8 @@ class NothingIsSolution(Backtracking):
     def __init__(self, cm: Choices) -> None:
         super().__init__(cm)
 
-    def rule_nothing_is_solution(self, cm: Choices) -> Choices | None:
+    @staticmethod
+    def prune(cm: Choices) -> Choices | None:
         return None
 
 
@@ -21,12 +22,17 @@ class EverythingIsSolution(Backtracking):
     def __init__(self, cm: Choices) -> None:
         super().__init__(cm)
 
+    @staticmethod
+    def prune(cm: Choices) -> Choices | None:
+        return cm
+
 
 class OnlyZeros(Backtracking):
     def __init__(self, cm: Choices) -> None:
         super().__init__(cm)
 
-    def rule_only_zeros(self, cm: Choices) -> Choices | None:
+    @staticmethod
+    def prune(cm: Choices) -> Choices | None:
         m, n = cm.shape
         ans = np.copy(cm)
         for i, j in product(range(m), range(n)):

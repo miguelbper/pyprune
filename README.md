@@ -26,9 +26,9 @@ Strictly speaking, `cm[i, j]` is not a set but an integer representing that set.
 
 ## Example usage
 
-See `examples/sudoku.py`.
+See `pyprune/examples/sudoku.py`.
 
-**Step 1.** Implement a class with the rules of the puzzle. Rules are methods of the class with name `rule_*`. Each method has signature `def rule_*(cm: Choices) -> Optional[Choices]`. Hint: make use of `numpy` and `numba` to obtain better performance.
+**Step 1.** Implement a class with the rules of the puzzle. To do so, implement a class inheriting from `Backtracking`. Override `prune` and optionally `expand`.
 ```python
 class Sudoku(Backtracking):
     """A class representing the Sudoku puzzle solver.
@@ -39,12 +39,13 @@ class Sudoku(Backtracking):
         cm (Choices): The initial choices matrix representing the grid.
 
     Methods:
-        rule_sudoku(cm: Choices) -> Optional[Choices]: Applies the rules
+        prune(cm: Choices) -> Optional[Choices]: Applies the rules
             of Sudoku to the choices matrix.
     """
+
     @staticmethod
     @njit
-    def rule_sudoku(cm: Choices) -> Choices | None:
+    def prune(cm: Choices) -> Choices | None:
         """Applies the rules of Sudoku.
 
         If a cell (i, j) has value x, then
@@ -56,7 +57,7 @@ class Sudoku(Backtracking):
             cm (Choices): The choices matrix representing the grid.
 
         Returns:
-            Optional[Choices]: The updated choices matrix after applying
+            Choices | None: The updated choices matrix after applying
                 the Sudoku rules.
         """
         cm = np.copy(cm)

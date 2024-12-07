@@ -54,14 +54,14 @@ class Backtracking(ABC):
         accept(cm: Choices) -> bool:
             Checks if all elements of the choice matrix are singletons.
 
-        expand(cm: Choices) -> list[Choices]:
+        expand(self, cm: Choices) -> list[Choices]:
             Chooses a cell and lists the possible values for that cell.
             Can optionally be overriden by the user.
 
         prune_repeatedly(self, cm: Choices) -> Choices | None:
             Repeatedly calls prune, until cm is no longer changed.
 
-        prune(cm: Choices) -> Choices | None:
+        prune(self, cm: Choices) -> Choices | None:
             Defines the rules of the problem. Should be implemented by
             the user.
     """
@@ -158,8 +158,7 @@ class Backtracking(ABC):
         """
         return np.all(cm & (cm - 1) == 0)
 
-    @staticmethod
-    def expand(cm: Choices) -> list[Choices]:
+    def expand(self, cm: Choices) -> list[Choices]:
         """Chooses a cell and lists the possible values for that cell.
 
         Expands the given choices matrix by selecting the element with
@@ -216,9 +215,8 @@ class Backtracking(ABC):
             prune_again = not np.array_equal(cm, cm_temp)
         return cm
 
-    @staticmethod
     @abstractmethod
-    def prune(cm: Choices) -> Choices | None:
+    def prune(self, cm: Choices) -> Choices | None:
         """Prunes the choices matrix based on the rules of the problem.
 
         Should be implemented by the user, since it is specific to the

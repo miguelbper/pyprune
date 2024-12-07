@@ -63,7 +63,7 @@ class TestBacktracking:
     def test_expand(self, cm_nonzeros: Choices):
         if np.all(cm_nonzeros & (cm_nonzeros - 1) == 0):
             return
-        cms = np.stack(Backtracking.expand(cm_nonzeros), axis=0)
+        cms = np.stack(Backtracking.expand(None, cm_nonzeros), axis=0)  # type: ignore[arg-type]
         comparisons = cms == cm_nonzeros
         comparison = comparisons[0]
         assert np.all(comparisons == comparison)

@@ -44,7 +44,6 @@ class Sudoku(Backtracking):
     """
 
     @staticmethod
-    @njit
     def prune(cm: Choices) -> Choices | None:
         """Applies the rules of Sudoku.
 
@@ -78,7 +77,7 @@ class Sudoku(Backtracking):
 
 **Step 2.** Define a starting choices matrix.
 ```python
-cm = np.where(sudoku, 2**sudoku, (2**10 - 2)*np.ones((9, 9))).astype(np.uint32)
+cm = np.where(sudoku, 2**sudoku, (2**10 - 2)*np.ones((9, 9))).astype(np.int32)
 ```
 
 **Step 3.** Instantiate problem class with starting choices matrix.

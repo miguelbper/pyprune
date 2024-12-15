@@ -4,13 +4,10 @@ from pyprune.subset import (
     elements,
     is_empty,
     is_singleton,
-    is_singleton_numba,
     num_elements,
-    num_elements_numba,
     remove,
     remove_except,
     smallest,
-    smallest_numba,
     subset,
 )
 
@@ -50,14 +47,3 @@ class TestSubset:
             rex_sx_0 = remove_except(s, x)
             rex_sx_1 = subset([x] if x in elements(s) else [])
             assert rex_sx_0 == rex_sx_1
-
-
-class TestSubsetNumba:
-    def test_smallest_numba(self, s: int):
-        assert smallest(s) == smallest_numba(s)
-
-    def test_num_elements_numba(self, s: int):
-        assert num_elements(s) == num_elements_numba(s)
-
-    def test_is_singleton_numba(self, s: int):
-        assert is_singleton(s) == is_singleton_numba(s)

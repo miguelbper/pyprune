@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyprune"
-version = "0.1.3"
+version = "0.1.4"
 description = "Backtracking algorithm for constraint satisfaction puzzles."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,10 +13,7 @@ authors = [
     {name = "Miguel Pereira", email = "miguel.b.per@gmail.com"},
 ]
 dependencies = [
-    "numba>=0.60.0",
     "numpy>=2.0.2",
-    "tqdm>=4.67.1",
-    "types-tqdm>=4.67.0.20241119",
 ]
 
 [dependency-groups]
@@ -47,7 +44,3 @@ select = [
 # docformatter pre-commit hook configured so that it is able to format Sphinx style docstrings
 [tool.docformatter]
 style = "google"
-
-[[tool.mypy.overrides]]
-module = ["numba"]
-ignore_missing_imports = true

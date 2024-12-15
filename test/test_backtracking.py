@@ -1,5 +1,3 @@
-from timeit import timeit
-
 import numpy as np
 import pytest
 
@@ -11,7 +9,7 @@ class Simple:
     @staticmethod
     def grid(cm: Choices) -> Grid:
         arr = np.array([[smallest(s) for s in row] for row in cm])
-        return arr.astype(np.uint32)
+        return arr.astype(np.int32)
 
     @staticmethod
     def accept(cm: Choices) -> np.bool:
@@ -32,19 +30,19 @@ def k(request) -> int:
 @pytest.fixture(params=list(range(5)), ids=lambda x: f"[seed={x}]")
 def cm(request, n: int, k: int) -> Choices:
     rng = np.random.default_rng(request.param)
-    return rng.integers(0, 2**k, (n, n), dtype=np.uint32)
+    return rng.integers(0, 2**k, (n, n), dtype=np.int32)
 
 
 @pytest.fixture(params=list(range(5)), ids=lambda x: f"[seed={x}]")
 def cm_singletons(request, n: int, k: int) -> Choices:
     rng = np.random.default_rng(request.param)
-    return np.pow(2, rng.integers(0, k, (n, n), dtype=np.uint32))
+    return np.pow(2, rng.integers(0, k, (n, n), dtype=np.int32))
 
 
 @pytest.fixture(params=list(range(5)), ids=lambda x: f"[seed={x}]")
 def cm_nonzeros(request, n: int, k: int) -> Choices:
     rng = np.random.default_rng(request.param)
-    return rng.integers(1, 2**k, (n, n), dtype=np.uint32)
+    return rng.integers(1, 2**k, (n, n), dtype=np.int32)
 
 
 class TestBacktracking:
@@ -70,30 +68,3 @@ class TestBacktracking:
         assert np.sum(~comparison) == 1
         i, j = np.where(~comparison)
         assert np.sum(cms[:, i, j]) == cm_nonzeros[i, j]
-
-
-numba_functions = [
-    Backtracking.grid,
-    Backtracking.reject,
-    Backtracking.accept,
-]
-
-
-@pytest.fixture(params=numba_functions)
-def func(request):
-    return request.param
-
-
-class TestBacktrackingNumba:
-    def test_numba(self, func):
-        # arrange
-        n_iters = 10000
-        rng = np.random.default_rng(1337)
-        cm = rng.integers(0, 2**16, (10, 10), dtype=np.uint32)
-        func(cm)
-        slow = func.py_func
-        # act
-        t_fast = timeit(lambda: func(cm), number=n_iters)
-        t_slow = timeit(lambda: slow(cm), number=n_iters)
-        # assert
-        assert t_fast < t_slow

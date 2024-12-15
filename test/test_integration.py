@@ -53,7 +53,7 @@ def k(request) -> int:
 @pytest.fixture(params=list(range(5)), ids=lambda x: f"[seed={x}]")
 def cm(request, n: int, k: int) -> Choices:
     rng = np.random.default_rng(request.param)
-    return rng.integers(1, 2**k, (n, n), dtype=np.uint32)
+    return rng.integers(1, 2**k, (n, n), dtype=np.int32)
 
 
 class TestIntegration:
@@ -64,14 +64,14 @@ class TestIntegration:
 
     def test_everything_is_solution(self):
         rng = np.random.default_rng(1337)
-        cm = rng.integers(1, 2**2, (2, 2), dtype=np.uint32)
+        cm = rng.integers(1, 2**2, (2, 2), dtype=np.int32)
         problem = EverythingIsSolution(cm)
         num_choices = np.vectorize(num_elements)(cm)
         assert len(problem.solutions()) == np.prod(num_choices)
 
     def test_only_zeros(self, cm: Choices):
-        zeros = np.zeros(cm.shape, dtype=np.uint32)
-        ones = np.ones(cm.shape, dtype=np.uint32)
+        zeros = np.zeros(cm.shape, dtype=np.int32)
+        ones = np.ones(cm.shape, dtype=np.int32)
         cm += np.where(cm % 2, zeros, ones)
         problem = OnlyZeros(cm)
         soln = problem.solution()

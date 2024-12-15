@@ -1,7 +1,6 @@
 import os
 
 import numpy as np
-from numba import njit
 
 from pyprune.backtracking import Backtracking, Choices, Grid
 
@@ -21,7 +20,6 @@ class Sudoku(Backtracking):
     """
 
     @staticmethod
-    @njit
     def prune(cm: Choices) -> Choices | None:
         """Applies the rules of Sudoku.
 
@@ -108,7 +106,7 @@ def parse_file_to_sudoku(filename: str) -> list[Grid]:
             line = line.strip()  # remove newline character
             if len(line) == 81:  # 9*9 digits
                 sudoku = np.array(list(map(int, line))).reshape(9, 9)
-                sudokus.append(sudoku.astype(np.uint32))
+                sudokus.append(sudoku.astype(np.int32))
     return sudokus
 
 
@@ -134,7 +132,7 @@ if __name__ == "__main__":
     # if cell (i, j) is filled with value x, then cm[i, j] = 1 << x
     # if cell (i, j) is empty, then cm[i, j] = 0b1111111110 = 2**10 - 2 = 1022
     # in more complicated cases, can use subset.subset([x1, x2, ..., xk])
-    cm = np.where(sudoku, 2**sudoku, (2**10 - 2) * np.ones((9, 9))).astype(np.uint32)
+    cm = np.where(sudoku, 2**sudoku, (2**10 - 2) * np.ones((9, 9))).astype(np.int32)
     print("\ncm = \n", cm)
     # Cm = [[1022 1022 1022 1022  128   32   16 1022 1022] [1022 1022 1022 1022
     # 1022 1022 1022 1022  256] [1022  256 1022    2  512 1022 1022 1022 1022] [   8

@@ -11,11 +11,10 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 
 import numpy as np
-from numba import njit
 from numpy.typing import NDArray
 
-Grid = NDArray[np.uint32]  # Each element is an int
-Choices = NDArray[np.uint32]  # Each element is an int representing a set
+Grid = NDArray[np.int32]  # Each element is an int
+Choices = NDArray[np.int32]  # Each element is an int representing a set
 
 
 class Backtracking(ABC):
@@ -75,7 +74,7 @@ class Backtracking(ABC):
         Returns:
             None
         """
-        self.cm = cm.astype(np.uint32)
+        self.cm = cm.astype(np.int32)
 
     def solution_generator(self) -> Iterator[Grid]:
         """Generates solutions using backtracking algorithm.
@@ -113,7 +112,6 @@ class Backtracking(ABC):
         return list(self.solution_generator())
 
     @staticmethod
-    @njit
     def grid(cm: Choices) -> Grid:
         """Convert from a choices matrix to a grid.
 
@@ -127,10 +125,9 @@ class Backtracking(ABC):
         Returns:
             Grid: The resulting grid.
         """
-        return np.log2(cm).astype(np.uint32)
+        return np.log2(cm).astype(np.int32)
 
     @staticmethod
-    @njit
     def reject(cm: Choices | None) -> bool:
         """Checks if the choice matrix is invalid.
 
@@ -143,7 +140,6 @@ class Backtracking(ABC):
         return cm is None or not np.all(cm)
 
     @staticmethod
-    @njit
     def accept(cm: Choices) -> np.bool:
         """Checks if all elements of the choice matrix are singletons.
 

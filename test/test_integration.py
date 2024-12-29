@@ -1,17 +1,16 @@
 import os
-from itertools import product
 
 import numpy as np
 import pytest
 
 from pyprune.backtracking import Backtracking, Choices
 from pyprune.examples.sudoku import Sudoku, is_sudoku_solution, parse_file_to_sudoku
-from pyprune.subset import num_elements, remove_except
+from pyprune.subset import num_elements
 
 
 class NothingIsSolution(Backtracking):
     def __init__(self, cm: Choices) -> None:
-        super().__init__(cm)
+        self.stack = [cm]
 
     @staticmethod
     def prune(cm: Choices) -> Choices | None:
@@ -20,7 +19,7 @@ class NothingIsSolution(Backtracking):
 
 class EverythingIsSolution(Backtracking):
     def __init__(self, cm: Choices) -> None:
-        super().__init__(cm)
+        self.stack = [cm]
 
     @staticmethod
     def prune(cm: Choices) -> Choices | None:
@@ -29,15 +28,11 @@ class EverythingIsSolution(Backtracking):
 
 class OnlyZeros(Backtracking):
     def __init__(self, cm: Choices) -> None:
-        super().__init__(cm)
+        self.stack = [cm]
 
     @staticmethod
     def prune(cm: Choices) -> Choices | None:
-        m, n = cm.shape
-        ans = np.copy(cm)
-        for i, j in product(range(m), range(n)):
-            ans[i, j] = remove_except(cm[i, j], 0)
-        return ans
+        return cm & (1 << 0)
 
 
 @pytest.fixture(params=[1, 2, 5], ids=lambda x: f"[n={x}]")
@@ -82,8 +77,7 @@ class TestIntegration:
     def test_sudoku(self):
         sudokus = parse_file_to_sudoku(os.path.join("pyprune", "examples", "sudoku.txt"))
         for sudoku in sudokus[:100]:  # file has 10000 sudokus, take only 100
-            cm = np.where(sudoku, 2**sudoku, (2**10 - 2) * np.ones((9, 9)))
-            problem = Sudoku(cm)
+            problem = Sudoku(sudoku)
             solution = problem.solution()
             assert is_sudoku_solution(solution)
             assert len(problem.solutions()) == 1

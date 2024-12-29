@@ -7,8 +7,9 @@ specific problem. Users should inherit from this class and add the rules
 of the problem.
 """
 
-from abc import ABC, abstractmethod
-from collections.abc import Iterator
+import inspect
+from collections.abc import Callable, Iterator
+from copy import deepcopy
 
 import numpy as np
 from numpy.typing import NDArray
@@ -17,15 +18,35 @@ Grid = NDArray[np.int32]  # Each element is an int
 Choices = NDArray[np.int32]  # Each element is an int representing a set
 
 
-class Backtracking(ABC):
+def rule(func: Callable) -> Callable:
+    func.rule = True
+    return func
+
+
+class Backtracking:
     """Represents a backtracking problem.
 
     Usage:
-        - Define a new class that inherits from this class.
-        - Define a prune method.
-        - Optionally override the expand method.
-        - Instantiate by providing initial choices matrix.
-        - Call 'solution' or 'solutions' to find the solution(s).
+        1. Define a new class that inherits from this class.
+
+        2. __init__:
+            - Override
+            - Do super().__init__()
+            - Define the initial stack
+
+        3. expand -> expand_cell
+            Options (from less to more "manual")
+            - Leave the methods as is / do nothing
+            - Override expand_cell to specify what cell should be chosen
+            - Override expand to specify different logic
+
+        4. prune_repeatedly -> prune -> @rule's
+            Options (from less to more "manual")
+            - Define methods decorated with @rule, they will be called by prune
+            - Override prune
+            - Override prune_repeatedly
+
+        5. Instantiate and call 'solution' or 'solutions' to find the solution(s).
 
     Attributes:
         cm (Choices): The initial matrix of choices.
@@ -65,16 +86,17 @@ class Backtracking(ABC):
             the user.
     """
 
-    def __init__(self, cm: Choices) -> None:
-        """Initializes a Backtracking object.
+    def __init__(self, *args, **kwargs) -> None:
+        """Initializes a Backtracking object. Should create self.stack
+        attribute.
 
         Args:
-            cm (Choices): The initial matrix of choices.
+            Whatever you want to pass as argument.
 
         Returns:
             None
         """
-        self.cm = cm.astype(np.int32)
+        self.rules = self.get_rules()
 
     def solution_generator(self) -> Iterator[Grid]:
         """Generates solutions using backtracking algorithm.
@@ -85,7 +107,7 @@ class Backtracking(ABC):
         Yields:
             Grid: A valid solution grid.
         """
-        stack = [self.cm]
+        stack = deepcopy(self.stack)
         while stack:
             cm = self.prune_repeatedly(stack.pop())
             if cm is None:
@@ -183,13 +205,18 @@ class Backtracking(ABC):
                 fewest possible choices.
         """
         powers_of_two = 1 << np.arange(32)
-        cardinality = np.sum((cm[..., None] & powers_of_two) != 0, axis=-1)
-        cardinality_unfilled = np.where(cardinality == 1, np.inf, cardinality)
-        multi_index = np.unravel_index(np.argmin(cardinality_unfilled), cm.shape)
+        multi_index = self.expand_cell(cm)
         powers_present = powers_of_two[cm[multi_index] & powers_of_two > 0]
         cm_copies = np.repeat(cm[np.newaxis, ...], len(powers_present), axis=0)
         cm_copies[:, *multi_index] = powers_present
         return list(cm_copies)
+
+    def expand_cell(self, cm: Choices) -> tuple[np.intp, ...]:
+        powers_of_two = 1 << np.arange(32)
+        cardinality = np.sum((cm[..., None] & powers_of_two) != 0, axis=-1)
+        cardinality_unfilled = np.where(cardinality == 1, np.inf, cardinality)
+        multi_index = np.unravel_index(np.argmin(cardinality_unfilled), cm.shape)
+        return multi_index
 
     def prune_repeatedly(self, cm: Choices) -> Choices | None:
         """Repeatedly calls prune until cm no longer changes.
@@ -211,7 +238,6 @@ class Backtracking(ABC):
             prune_again = not np.array_equal(cm, cm_temp)
         return cm
 
-    @abstractmethod
     def prune(self, cm: Choices) -> Choices | None:
         """Prunes the choices matrix based on the rules of the problem.
 
@@ -233,4 +259,14 @@ class Backtracking(ABC):
         Returns:
             Choices | None: Pruned matrix or None
         """
-        pass
+        cm = np.copy(cm)
+        for func in self.rules:
+            cm = func(cm)
+            if self.reject(cm):
+                return None
+        return cm
+
+    def get_rules(self) -> list[Callable[[Choices], Choices | None]]:
+        methods = inspect.getmembers(self.__class__, predicate=inspect.isfunction)
+        rule_methods = [func for _, func in methods if getattr(func, "rule", False)]
+        return rule_methods

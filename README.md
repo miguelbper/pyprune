@@ -39,12 +39,16 @@ class Sudoku(Backtracking):
         cm (Choices): The initial choices matrix representing the grid.
 
     Methods:
-        prune(cm: Choices) -> Optional[Choices]: Applies the rules
+        prune(cm: Choices) -> Choices | None: Applies the rules
             of Sudoku to the choices matrix.
     """
 
-    @staticmethod
-    def prune(cm: Choices) -> Choices | None:
+    def __init__(self, sudoku: Grid) -> None:
+        cm = np.where(sudoku, 1 << sudoku, (2**10 - 2) * np.ones((9, 9), dtype=np.int32))
+        self.stack = [cm]
+
+    @rule
+    def sudoku(cm: Choices) -> Choices | None:
         """Applies the rules of Sudoku.
 
         If a cell (i, j) has value x, then

@@ -44,11 +44,19 @@ class Sudoku(Backtracking):
     """
 
     def __init__(self, sudoku: Grid) -> None:
+        super().__init__()
         cm = np.where(sudoku, 1 << sudoku, (2**10 - 2) * np.ones((9, 9), dtype=np.int32))
         self.stack = [cm]
 
+        I, J, K, L = np.indices((9, 9, 9, 9))
+        same_row = I == K
+        same_col = J == L
+        same_reg = (I // 3 == K // 3) & (J // 3 == L // 3)
+        different = ~(same_row & same_col)
+        self.neigh = different & (same_reg | same_row | same_col)
+
     @rule
-    def sudoku(cm: Choices) -> Choices | None:
+    def sudoku(self, cm: Choices) -> Choices | None:
         """Applies the rules of Sudoku.
 
         If a cell (i, j) has value x, then
@@ -63,19 +71,11 @@ class Sudoku(Backtracking):
             Choices | None: The updated choices matrix after applying
                 the Sudoku rules.
         """
-        cm = np.copy(cm)
-        for i in range(9):
-            for j in range(9):
-                c = cm[i, j]
-                if c and c & (c - 1) == 0:
-                    mask = ~c
-                    u = (i // 3) * 3
-                    v = (j // 3) * 3
-                    cm[i, :] &= mask
-                    cm[:, j] &= mask
-                    cm[u : u + 3, v : v + 3] &= mask
-                    cm[i, j] = c
-        return cm
+        nums = (1 << np.arange(1, 10)).reshape(-1, 1, 1)  # (9, 1, 1) [d, ...]
+        cm_eq_nums = cm == nums  # (9, 9, 9) [d, i, j]
+        masks = nums * np.any(cm_eq_nums.reshape(-1, 1, 1, 9, 9) & self.neigh, axis=(3, 4))  # (9, 9, 9) [d, i, j]
+        mask = np.sum(masks, axis=0)  # (9, 9) [i, j]
+        return cm & ~mask
 ```
 
 **Step 2.** Instantiate problem class.

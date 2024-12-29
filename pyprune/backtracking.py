@@ -268,5 +268,5 @@ class Backtracking:
 
     def get_rules(self) -> list[Callable[[Choices], Choices | None]]:
         methods = inspect.getmembers(self.__class__, predicate=inspect.isfunction)
-        rule_methods = [func for _, func in methods if getattr(func, "rule", False)]
-        return rule_methods
+        rules = [getattr(self, name) for name, func in methods if getattr(func, "rule", False)]
+        return rules

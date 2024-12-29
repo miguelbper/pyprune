@@ -24,6 +24,7 @@ class Sudoku(Backtracking):
         cm = np.where(sudoku, 1 << sudoku, (2**10 - 2) * np.ones((9, 9), dtype=np.int32))
         self.stack = [cm]
 
+    @staticmethod
     @rule
     def sudoku(cm: Choices) -> Choices | None:
         """Applies the rules of Sudoku.

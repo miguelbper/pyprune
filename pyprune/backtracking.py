@@ -7,8 +7,9 @@ specific problem. Users should inherit from this class and add the rules
 of the problem.
 """
 
+import inspect
 from abc import ABC, abstractmethod
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from copy import deepcopy
 
 import numpy as np
@@ -16,6 +17,11 @@ from numpy.typing import NDArray
 
 Grid = NDArray[np.int32]  # Each element is an int
 Choices = NDArray[np.int32]  # Each element is an int representing a set
+
+
+def rule(func: Callable) -> Callable:
+    func.rule = True
+    return func
 
 
 class Backtracking(ABC):
@@ -240,4 +246,15 @@ class Backtracking(ABC):
         Returns:
             Choices | None: Pruned matrix or None
         """
-        return None
+        rules = self.get_rules()
+        cm = np.copy(cm)
+        for func in rules:
+            cm = func(cm)
+            if self.reject(cm):
+                return None
+        return cm
+
+    def get_rules(self) -> list[Callable[[Choices], Choices | None]]:
+        methods = inspect.getmembers(self.__class__, predicate=inspect.isfunction)
+        rule_methods = [func for name, func in methods if getattr(func, "rule", False)]
+        return rule_methods

@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 
-from pyprune.backtracking import Backtracking, Choices, Grid
+from pyprune.backtracking import Backtracking, Choices, Grid, rule
 
 
 # The class that should be implemented to solve a Sudoku puzzle
@@ -23,8 +23,8 @@ class Sudoku(Backtracking):
         cm = np.where(sudoku, 1 << sudoku, (2**10 - 2) * np.ones((9, 9), dtype=np.int32))
         self.stack = [cm]
 
-    @staticmethod
-    def prune(cm: Choices) -> Choices | None:
+    @rule
+    def sudoku(cm: Choices) -> Choices | None:
         """Applies the rules of Sudoku.
 
         If a cell (i, j) has value x, then

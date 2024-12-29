@@ -132,21 +132,8 @@ if __name__ == "__main__":
     #  [9 0 0 0 0 0 0 2 0]
     #  [5 3 0 2 0 0 0 0 0]]
 
-    # define the choices matrix
-    # if cell (i, j) is filled with value x, then cm[i, j] = 1 << x
-    # if cell (i, j) is empty, then cm[i, j] = 0b1111111110 = 2**10 - 2 = 1022
-    # in more complicated cases, can use subset.subset([x1, x2, ..., xk])
-    cm = np.where(sudoku, 2**sudoku, (2**10 - 2) * np.ones((9, 9))).astype(np.int32)
-    print("\ncm = \n", cm)
-    # Cm = [[1022 1022 1022 1022  128   32   16 1022 1022] [1022 1022 1022 1022
-    # 1022 1022 1022 1022  256] [1022  256 1022    2  512 1022 1022 1022 1022] [   8
-    # 1022 1022 1022 1022    2 1022   64 1022] [1022 1022 1022 1022 1022 1022 1022 8
-    # 16] [1022 1022 1022 1022   64  256    2  128 1022] [   4 1022   16 1022 1022
-    # 1022   64 1022    8] [ 512 1022 1022 1022 1022 1022 1022    4 1022] [  32 8
-    # 1022    4 1022 1022 1022 1022 1022]]
-
     # create a Sudoku object / problem
-    problem = Sudoku(cm)
+    problem = Sudoku(sudoku)
 
     # find solutions to the problem
     solutions = problem.solutions()

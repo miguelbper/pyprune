@@ -78,18 +78,12 @@ class Sudoku(Backtracking):
         return cm
 ```
 
-
-**Step 2.** Define a starting choices matrix.
+**Step 2.** Instantiate problem class.
 ```python
-cm = np.where(sudoku, 2**sudoku, (2**10 - 2)*np.ones((9, 9))).astype(np.int32)
+problem = Sudoku(sudoku)
 ```
 
-**Step 3.** Instantiate problem class with starting choices matrix.
-```python
-problem = Sudoku(cm)
-```
-
-**Step 4.** Find solutions of the problem. Here is when the backtracking algorithm is called.
+**Step 3.** Find solutions of the problem. Here is when the backtracking algorithm is called.
 ```python
 solution = problem.solution()
 print(solution)

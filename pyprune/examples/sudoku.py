@@ -19,6 +19,10 @@ class Sudoku(Backtracking):
             of Sudoku to the choices matrix.
     """
 
+    def __init__(self, sudoku: Grid) -> None:
+        cm = np.where(sudoku, 1 << sudoku, (2**10 - 2) * np.ones((9, 9), dtype=np.int32))
+        self.stack = [cm]
+
     @staticmethod
     def prune(cm: Choices) -> Choices | None:
         """Applies the rules of Sudoku.

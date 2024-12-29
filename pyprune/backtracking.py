@@ -9,6 +9,7 @@ of the problem.
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
+from copy import deepcopy
 
 import numpy as np
 from numpy.typing import NDArray
@@ -65,16 +66,18 @@ class Backtracking(ABC):
             the user.
     """
 
-    def __init__(self, cm: Choices) -> None:
-        """Initializes a Backtracking object.
+    @abstractmethod
+    def __init__(self, *args, **kwargs) -> None:
+        """Initializes a Backtracking object. Should create self.stack
+        attribute.
 
         Args:
-            cm (Choices): The initial matrix of choices.
+            Whatever you want to pass as argument.
 
         Returns:
             None
         """
-        self.cm = cm.astype(np.int32)
+        pass
 
     def solution_generator(self) -> Iterator[Grid]:
         """Generates solutions using backtracking algorithm.
@@ -85,7 +88,7 @@ class Backtracking(ABC):
         Yields:
             Grid: A valid solution grid.
         """
-        stack = [self.cm]
+        stack = deepcopy(self.stack)
         while stack:
             cm = self.prune_repeatedly(stack.pop())
             if cm is None:

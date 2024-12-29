@@ -17,6 +17,11 @@ class Simple:
         return np.all(bool_arr)
 
 
+class Problem(Backtracking):
+    def __init__(self, *args, **kwargs) -> None:
+        pass
+
+
 @pytest.fixture(params=[1, 5], ids=lambda x: f"[n={x}]")
 def n(request) -> int:
     return request.param
@@ -45,6 +50,11 @@ def cm_nonzeros(request, n: int, k: int) -> Choices:
     return rng.integers(1, 2**k, (n, n), dtype=np.int32)
 
 
+# @pytest.fixture()
+# def problem() -> Problem:
+#     return Problem()
+
+
 class TestBacktracking:
     def test_grid(self, cm_singletons: Choices):
         assert np.array_equal(Backtracking.grid(cm_singletons), Simple.grid(cm_singletons))
@@ -61,7 +71,8 @@ class TestBacktracking:
     def test_expand(self, cm_nonzeros: Choices):
         if np.all(cm_nonzeros & (cm_nonzeros - 1) == 0):
             return
-        cms = np.stack(Backtracking.expand(None, cm_nonzeros), axis=0)  # type: ignore[arg-type]
+        problem = Problem()
+        cms = np.stack(problem.expand(cm_nonzeros), axis=0)  # type: ignore[arg-type]
         comparisons = cms == cm_nonzeros
         comparison = comparisons[0]
         assert np.all(comparisons == comparison)

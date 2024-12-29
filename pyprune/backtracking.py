@@ -186,13 +186,18 @@ class Backtracking(ABC):
                 fewest possible choices.
         """
         powers_of_two = 1 << np.arange(32)
-        cardinality = np.sum((cm[..., None] & powers_of_two) != 0, axis=-1)
-        cardinality_unfilled = np.where(cardinality == 1, np.inf, cardinality)
-        multi_index = np.unravel_index(np.argmin(cardinality_unfilled), cm.shape)
+        multi_index = self.expand_cell(cm)
         powers_present = powers_of_two[cm[multi_index] & powers_of_two > 0]
         cm_copies = np.repeat(cm[np.newaxis, ...], len(powers_present), axis=0)
         cm_copies[:, *multi_index] = powers_present
         return list(cm_copies)
+
+    def expand_cell(self, cm: Choices) -> tuple[np.intp, ...]:
+        powers_of_two = 1 << np.arange(32)
+        cardinality = np.sum((cm[..., None] & powers_of_two) != 0, axis=-1)
+        cardinality_unfilled = np.where(cardinality == 1, np.inf, cardinality)
+        multi_index = np.unravel_index(np.argmin(cardinality_unfilled), cm.shape)
+        return multi_index
 
     def prune_repeatedly(self, cm: Choices) -> Choices | None:
         """Repeatedly calls prune until cm no longer changes.
@@ -214,7 +219,6 @@ class Backtracking(ABC):
             prune_again = not np.array_equal(cm, cm_temp)
         return cm
 
-    @abstractmethod
     def prune(self, cm: Choices) -> Choices | None:
         """Prunes the choices matrix based on the rules of the problem.
 
@@ -236,4 +240,4 @@ class Backtracking(ABC):
         Returns:
             Choices | None: Pruned matrix or None
         """
-        pass
+        return None

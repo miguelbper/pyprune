@@ -8,7 +8,6 @@ of the problem.
 """
 
 import inspect
-from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterator
 from copy import deepcopy
 
@@ -24,15 +23,30 @@ def rule(func: Callable) -> Callable:
     return func
 
 
-class Backtracking(ABC):
+class Backtracking:
     """Represents a backtracking problem.
 
     Usage:
-        - Define a new class that inherits from this class.
-        - Define a prune method.
-        - Optionally override the expand method.
-        - Instantiate by providing initial choices matrix.
-        - Call 'solution' or 'solutions' to find the solution(s).
+        1. Define a new class that inherits from this class.
+
+        2. __init__:
+            - Override
+            - Do super().__init__()
+            - Define the initial stack
+
+        3. expand -> expand_cell
+            Options (from less to more "manual")
+            - Leave the methods as is / do nothing
+            - Override expand_cell to specify what cell should be chosen
+            - Override expand to specify different logic
+
+        4. prune_repeatedly -> prune -> @rule's
+            Options (from less to more "manual")
+            - Define methods decorated with @rule, they will be called by prune
+            - Override prune
+            - Override prune_repeatedly
+
+        5. Instantiate and call 'solution' or 'solutions' to find the solution(s).
 
     Attributes:
         cm (Choices): The initial matrix of choices.
@@ -72,7 +86,6 @@ class Backtracking(ABC):
             the user.
     """
 
-    @abstractmethod
     def __init__(self, *args, **kwargs) -> None:
         """Initializes a Backtracking object. Should create self.stack
         attribute.
@@ -83,7 +96,7 @@ class Backtracking(ABC):
         Returns:
             None
         """
-        pass
+        self.rules = self.get_rules()
 
     def solution_generator(self) -> Iterator[Grid]:
         """Generates solutions using backtracking algorithm.
@@ -246,9 +259,8 @@ class Backtracking(ABC):
         Returns:
             Choices | None: Pruned matrix or None
         """
-        rules = self.get_rules()
         cm = np.copy(cm)
-        for func in rules:
+        for func in self.rules:
             cm = func(cm)
             if self.reject(cm):
                 return None
@@ -256,5 +268,5 @@ class Backtracking(ABC):
 
     def get_rules(self) -> list[Callable[[Choices], Choices | None]]:
         methods = inspect.getmembers(self.__class__, predicate=inspect.isfunction)
-        rule_methods = [func for name, func in methods if getattr(func, "rule", False)]
+        rule_methods = [func for _, func in methods if getattr(func, "rule", False)]
         return rule_methods

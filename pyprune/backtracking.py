@@ -281,21 +281,25 @@ class Backtracking:
             rules.append(getattr(self, name))
         return rules
 
-    def optimize(self, stack: list[ArrayBitMask]) -> tuple[ArrayInt, Int]:
+    def optimize(self, stack: list[ArrayBitMask], maximize: bool) -> tuple[ArrayInt, Int] | tuple[None, np.float32]:
+        sign = 1 if maximize else -1
         best_xm = None
-        best_score = 0  # TODO: depends on mode = maximize/minimize
+        best_score: np.float32 = -sign * np.inf  # TODO: check data type
 
         stack = deepcopy(stack)
         while stack:
             bm = self.prune_repeatedly(stack.pop())
             if bm is None:
                 continue
+
+            # If current best score is better than all scores we could see, reject
             score = self.criterion(bm)
-            if False:  # TODO: if score is worse than best_score
+            if sign * (best_score - score) >= 0:
                 continue
+
             if self.accept(bm):
-                best_xm = self.grid(bm)
-                best_score = score
+                best_xm: ArrayInt = self.grid(bm)
+                best_score: Int = score
             else:
                 stack += self.expand(bm)
 

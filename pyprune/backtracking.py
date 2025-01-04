@@ -280,3 +280,26 @@ class Backtracking:
                 continue
             rules.append(getattr(self, name))
         return rules
+
+    def optimize(self, stack: list[ArrayBitMask]) -> tuple[ArrayInt, Int]:
+        best_xm = None
+        best_score = 0  # TODO: depends on mode = maximize/minimize
+
+        stack = deepcopy(stack)
+        while stack:
+            bm = self.prune_repeatedly(stack.pop())
+            if bm is None:
+                continue
+            score = self.criterion(bm)
+            if False:  # TODO: if score is worse than best_score
+                continue
+            if self.accept(bm):
+                best_xm = self.grid(bm)
+                best_score = score
+            else:
+                stack += self.expand(bm)
+
+        return best_xm, best_score
+
+    def criterion(self, bm: ArrayBitMask) -> Int:
+        raise NotImplementedError("For optimization, criterion needs to be defined.")

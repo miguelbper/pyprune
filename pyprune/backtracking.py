@@ -10,12 +10,15 @@ of the problem.
 import inspect
 from collections.abc import Callable, Iterator
 from copy import deepcopy
+from typing import TypeAlias
 
 import numpy as np
 from numpy.typing import NDArray
 
-Grid = NDArray[np.int32]  # Each element is an int
-Choices = NDArray[np.int32]  # Each element is an int representing a set
+Int: TypeAlias = np.int32
+BitMask: TypeAlias = np.uint32
+ArrayInt: TypeAlias = NDArray[Int]
+ArrayBitMask: TypeAlias = NDArray[BitMask]
 
 
 def rule(func: Callable) -> Callable:
@@ -49,39 +52,39 @@ class Backtracking:
         5. Instantiate and call 'solution' or 'solutions' to find the solution(s).
 
     Attributes:
-        cm (Choices): The initial matrix of choices.
+        bm (ArrayBitMask): The initial matrix of choices.
 
     Public methods (meant to be called by the user):
-        __init__(self, cm: Choices) -> None:
+        __init__(self, bm: ArrayBitMask) -> None:
             Initializes a Backtracking object.
 
-        solution(self) -> Grid | None:
+        solution(self) -> ArrayInt | None:
             Finds a solution using the backtracking algorithm.
 
-        solutions(self) -> list[Grid]:
+        solutions(self) -> list[ArrayInt]:
             Returns a list of all possible solutions for the problem.
 
     Private methods (only meant to be called by the class):
-        solution_generator(self) -> Iterator[Grid]:
+        solution_generator(self) -> Iterator[ArrayInt]:
             Generates solutions using the backtracking algorithm.
 
-        grid(cm: Choices) -> Grid:
+        grid(bm: ArrayBitMask) -> ArrayInt:
             Converts from a choices matrix to a grid.
 
-        reject(cm: Choices | None) -> bool:
-            True if cm is None or if cm has an empty cell.
+        reject(bm: ArrayBitMask | None) -> bool:
+            True if bm is None or if bm has an empty cell.
 
-        accept(cm: Choices) -> bool:
+        accept(bm: ArrayBitMask) -> bool:
             Checks if all elements of the choice matrix are singletons.
 
-        expand(self, cm: Choices) -> list[Choices]:
+        expand(self, bm: ArrayBitMask) -> list[ArrayBitMask]:
             Chooses a cell and lists the possible values for that cell.
             Can optionally be overriden by the user.
 
-        prune_repeatedly(self, cm: Choices) -> Choices | None:
-            Repeatedly calls prune, until cm is no longer changed.
+        prune_repeatedly(self, bm: ArrayBitMask) -> ArrayBitMask | None:
+            Repeatedly calls prune, until bm is no longer changed.
 
-        prune(self, cm: Choices) -> Choices | None:
+        prune(self, bm: ArrayBitMask) -> ArrayBitMask | None:
             Defines the rules of the problem. Should be implemented by
             the user.
     """
@@ -98,85 +101,85 @@ class Backtracking:
         """
         self.rules = self.get_rules()
 
-    def solution_generator(self) -> Iterator[Grid]:
+    def solution_generator(self) -> Iterator[ArrayInt]:
         """Generates solutions using backtracking algorithm.
 
         Generator that is called from the 'solution' and 'solutions'
         methods. A generator is used to prevent code duplication.
 
         Yields:
-            Grid: A valid solution grid.
+            ArrayInt: A valid solution grid.
         """
         stack = deepcopy(self.stack)
         while stack:
-            cm = self.prune_repeatedly(stack.pop())
-            if cm is None:
+            bm = self.prune_repeatedly(stack.pop())
+            if bm is None:
                 continue
-            if self.accept(cm):
-                yield self.grid(cm)
+            if self.accept(bm):
+                yield self.grid(bm)
             else:
-                stack += self.expand(cm)
+                stack += self.expand(bm)
 
-    def solution(self) -> Grid | None:
+    def solution(self) -> ArrayInt | None:
         """Finds a solution using a backtracking algorithm.
 
         Returns:
-            Grid | None: The solution grid if found, None otherwise.
+            ArrayInt | None: The solution grid if found, None otherwise.
         """
         return next(self.solution_generator(), None)
 
-    def solutions(self) -> list[Grid]:
+    def solutions(self) -> list[ArrayInt]:
         """Returns a list of all possible solutions for the problem.
 
         Returns:
-            A list of Grid objects representing the possible solutions.
+            A list of ArrayInt objects representing the possible solutions.
         """
         return list(self.solution_generator())
 
     @staticmethod
-    def grid(cm: Choices) -> Grid:
+    def grid(bm: ArrayBitMask) -> ArrayInt:
         """Convert from a choices matrix to a grid.
 
-        Assumes that all elements of cm are singletons. When used in
+        Assumes that all elements of bm are singletons. When used in
         'solution_generator', this is true because of the 'accept'
         function.
 
         Args:
-            cm (Choices): The input choices matrix.
+            bm (ArrayBitMask): The input choices matrix.
 
         Returns:
-            Grid: The resulting grid.
+            ArrayInt: The resulting grid.
         """
-        return np.log2(cm).astype(np.int32)
+        return np.log2(bm).astype(np.int32)
 
     @staticmethod
-    def reject(cm: Choices | None) -> bool:
+    def reject(bm: ArrayBitMask | None) -> bool:
         """Checks if the choice matrix is invalid.
 
         Args:
-            cm (Choices | None): The choice matrix to be checked.
+            bm (ArrayBitMask | None): The choice matrix to be checked.
 
         Returns:
-            bool: True if cm is None or contains a 0.
+            bool: True if bm is None or contains a 0.
         """
-        return cm is None or not np.all(cm)
+        return bm is None or not np.all(bm)
 
     @staticmethod
-    def accept(cm: Choices) -> np.bool:
+    def accept(bm: ArrayBitMask) -> np.bool:
         """Checks if all elements of the choice matrix are singletons.
 
-        Assumes that cm does not contain a 0, which is true when this
+        Assumes that bm does not contain a 0, which is true when this
         function is called in 'solution_generator'.
 
         Args:
-            cm (Choices): The choice matrix to be checked.
+            bm (ArrayBitMask): The choice matrix to be checked.
 
         Returns:
-            bool: True if all elements of cm are singletons.
+            bool: True if all elements of bm are singletons.
         """
-        return np.all(cm & (cm - 1) == 0)
+        return np.all(bm & (bm - 1) == 0)
 
-    def expand(self, cm: Choices) -> list[Choices]:
+    def expand(self, bm: ArrayBitMask) -> list[ArrayBitMask]:
         """Chooses a cell and lists the possible values for that cell.
 
         Expands the given choices matrix by selecting the element with
@@ -187,86 +190,86 @@ class Backtracking:
         more informed guesses for the list of possible choice matrices.
 
         When overriding, you may make use of the following assumptions:
-        - cm was not rejected => np.all(cm), i.e. no zeros in cm
-        - cm was not accepted => there exists a cell of cm with c > 1
+        - bm was not rejected => np.all(bm), i.e. no zeros in bm
+        - bm was not accepted => there exists a cell of bm with c > 1
 
         When overriding, you must respect the following properties:
-        If ems = expand(cm), then
-        - Refinement: For all em in ems, em ⊊ cm
-        - No solutions are lost: For all solutions xm ⊂ cm, there
+        If ems = expand(bm), then
+        - Refinement: For all em in ems, em ⊊ bm
+        - No solutions are lost: For all solutions xm ⊂ bm, there
           exists em in ems such that xm ⊂ em
 
         Args:
-            cm (Choices): The choices matrix to expand.
+            bm (ArrayBitMask): The choices matrix to expand.
 
         Returns:
-            list[Choices]: A list of new choice matrices, each
+            list[ArrayBitMask]: A list of new choice matrices, each
                 representing a possible choice for the element with the
                 fewest possible choices.
         """
         powers_of_two = 1 << np.arange(32)
-        multi_index = self.expand_cell(cm)
-        powers_present = powers_of_two[cm[multi_index] & powers_of_two > 0]
-        cm_copies = np.repeat(cm[np.newaxis, ...], len(powers_present), axis=0)
-        cm_copies[:, *multi_index] = powers_present
-        return list(cm_copies)
+        multi_index = self.expand_cell(bm)
+        powers_present = powers_of_two[bm[multi_index] & powers_of_two > 0]
+        bm_copies = np.repeat(bm[np.newaxis, ...], len(powers_present), axis=0)
+        bm_copies[:, *multi_index] = powers_present
+        return list(bm_copies)
 
-    def expand_cell(self, cm: Choices) -> tuple[np.intp, ...]:
+    def expand_cell(self, bm: ArrayBitMask) -> tuple[np.intp, ...]:
         powers_of_two = 1 << np.arange(32)
-        cardinality = np.sum((cm[..., None] & powers_of_two) != 0, axis=-1)
+        cardinality = np.sum((bm[..., None] & powers_of_two) != 0, axis=-1)
         cardinality_unfilled = np.where(cardinality == 1, np.inf, cardinality)
-        multi_index = np.unravel_index(np.argmin(cardinality_unfilled), cm.shape)
+        multi_index = np.unravel_index(np.argmin(cardinality_unfilled), bm.shape)
         return multi_index
 
-    def prune_repeatedly(self, cm: Choices) -> Choices | None:
-        """Repeatedly calls prune until cm no longer changes.
+    def prune_repeatedly(self, bm: ArrayBitMask) -> ArrayBitMask | None:
+        """Repeatedly calls prune until bm no longer changes.
 
         Args:
-            cm (Choices): The choices to be pruned.
+            bm (ArrayBitMask): The choices to be pruned.
 
         Returns:
-            Choices | None: The pruned choices, or None if the rules
+            ArrayBitMask | None: The pruned choices, or None if the rules
                 are violated.
         """
         prune_again = True
         while prune_again:
-            cm_temp = np.copy(cm)
-            cm_new = self.prune(cm)
-            if self.reject(cm_new):
+            bm_temp = np.copy(bm)
+            bm_new = self.prune(bm)
+            if self.reject(bm_new):
                 return None
-            cm = cm_new  # type: ignore[assignment]
-            prune_again = not np.array_equal(cm, cm_temp)
-        return cm
+            bm = bm_new  # type: ignore[assignment]
+            prune_again = not np.array_equal(bm, bm_temp)
+        return bm
 
-    def prune(self, cm: Choices) -> Choices | None:
+    def prune(self, bm: ArrayBitMask) -> ArrayBitMask | None:
         """Prunes the choices matrix based on the rules of the problem.
 
         Should be implemented by the user, since it is specific to the
         problem to be solved. Should obey the following properties:
 
-        If om = prune(cm), then
-        - Refinement: om ⊂ cm
-        - No solutions are lost: xm ⊂ cm satisfies the rule => xm ⊂ om
-        - Eventual rejection: If cm is all singletons and does not
+        If om = prune(bm), then
+        - Refinement: om ⊂ bm
+        - No solutions are lost: xm ⊂ bm satisfies the rule => xm ⊂ om
+        - Eventual rejection: If bm is all singletons and does not
           satisfy the rule, then reject(om) is True
 
-        If cm will never lead to a valid solution, may just return None
+        If bm will never lead to a valid solution, may just return None
         in the implementation.
 
         Args:
-            cm (Choices): The input choices matrix.
+            bm (ArrayBitMask): The input choices matrix.
 
         Returns:
-            Choices | None: Pruned matrix or None
+            ArrayBitMask | None: Pruned matrix or None
         """
-        cm = np.copy(cm)
+        bm = np.copy(bm)
         for func in self.rules:
-            cm = func(cm)
-            if self.reject(cm):
+            bm = func(bm)
+            if self.reject(bm):
                 return None
-        return cm
+        return bm
 
-    def get_rules(self) -> list[Callable[[Choices], Choices | None]]:
+    def get_rules(self) -> list[Callable[[ArrayBitMask], ArrayBitMask | None]]:
         rules = []
         for name, member in inspect.getmembers_static(self.__class__):
             is_static = isinstance(member, staticmethod)

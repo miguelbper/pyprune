@@ -281,10 +281,10 @@ class Backtracking:
             rules.append(getattr(self, name))
         return rules
 
-    def optimize(self, stack: list[ArrayBitMask], maximize: bool) -> tuple[ArrayInt, Int] | tuple[None, np.float32]:
+    def optimize(self, stack: list[ArrayBitMask], maximize: bool) -> tuple[ArrayInt, Int] | tuple[None, float]:
         sign = 1 if maximize else -1
         best_xm = None
-        best_score: np.float32 = -sign * np.inf  # TODO: check data type
+        best_score: float = -sign * np.inf
 
         stack = deepcopy(stack)
         while stack:

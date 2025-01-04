@@ -267,6 +267,13 @@ class Backtracking:
         return cm
 
     def get_rules(self) -> list[Callable[[Choices], Choices | None]]:
-        methods = inspect.getmembers(self.__class__, predicate=inspect.isfunction)
-        rules = [getattr(self, name) for name, func in methods if getattr(func, "rule", False)]
+        rules = []
+        for name, member in inspect.getmembers_static(self.__class__):
+            is_static = isinstance(member, staticmethod)
+            if not (inspect.isfunction(member) or is_static):
+                continue
+            func = member.__func__ if is_static else member
+            if not (getattr(func, "rule", False) or getattr(member, "rule", False)):
+                continue
+            rules.append(getattr(self, name))
         return rules

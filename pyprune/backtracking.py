@@ -101,7 +101,7 @@ class Backtracking:
         """
         self.rules = self.get_rules()
 
-    def solution_generator(self) -> Iterator[ArrayInt]:
+    def solution_generator(self, stack: list[ArrayBitMask]) -> Iterator[ArrayInt]:
         """Generates solutions using backtracking algorithm.
 
         Generator that is called from the 'solution' and 'solutions'
@@ -110,7 +110,7 @@ class Backtracking:
         Yields:
             ArrayInt: A valid solution grid.
         """
-        stack = deepcopy(self.stack)
+        stack = deepcopy(stack)
         while stack:
             bm = self.prune_repeatedly(stack.pop())
             if bm is None:
@@ -120,21 +120,21 @@ class Backtracking:
             else:
                 stack += self.expand(bm)
 
-    def solution(self) -> ArrayInt | None:
+    def solution(self, stack: list[ArrayBitMask]) -> ArrayInt | None:
         """Finds a solution using a backtracking algorithm.
 
         Returns:
             ArrayInt | None: The solution grid if found, None otherwise.
         """
-        return next(self.solution_generator(), None)
+        return next(self.solution_generator(stack), None)
 
-    def solutions(self) -> list[ArrayInt]:
+    def solutions(self, stack: list[ArrayBitMask]) -> list[ArrayInt]:
         """Returns a list of all possible solutions for the problem.
 
         Returns:
             A list of ArrayInt objects representing the possible solutions.
         """
-        return list(self.solution_generator())
+        return list(self.solution_generator(stack))
 
     @staticmethod
     def grid(bm: ArrayBitMask) -> ArrayInt:

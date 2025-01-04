@@ -13,7 +13,7 @@ authors = [
     {name = "Miguel Pereira", email = "miguel.b.per@gmail.com"},
 ]
 dependencies = [
-    "numpy>=2.0.2",
+    "numpy>=2.0.0",
 ]
 
 [dependency-groups]
@@ -28,7 +28,7 @@ dev = [
 packages = ["pyprune"]
 
 [tool.ruff]
-line-length = 99
+line-length = 120
 
 # Set of rules taken from https://docs.astral.sh/ruff/linter/#rule-selection
 [tool.ruff.lint]

@@ -35,7 +35,6 @@ class Backtracking:
         2. __init__:
             - Override
             - Do super().__init__()
-            - Define the initial stack
 
         3. expand -> expand_cell
             Options (from less to more "manual")
@@ -50,48 +49,10 @@ class Backtracking:
             - Override prune_repeatedly
 
         5. Instantiate and call 'solution' or 'solutions' to find the solution(s).
-
-    Attributes:
-        bm (ArrayBitMask): The initial matrix of choices.
-
-    Public methods (meant to be called by the user):
-        __init__(self, bm: ArrayBitMask) -> None:
-            Initializes a Backtracking object.
-
-        solution(self) -> ArrayInt | None:
-            Finds a solution using the backtracking algorithm.
-
-        solutions(self) -> list[ArrayInt]:
-            Returns a list of all possible solutions for the problem.
-
-    Private methods (only meant to be called by the class):
-        solution_generator(self) -> Iterator[ArrayInt]:
-            Generates solutions using the backtracking algorithm.
-
-        grid(bm: ArrayBitMask) -> ArrayInt:
-            Converts from a choices matrix to a grid.
-
-        reject(bm: ArrayBitMask | None) -> bool:
-            True if bm is None or if bm has an empty cell.
-
-        accept(bm: ArrayBitMask) -> bool:
-            Checks if all elements of the choice matrix are singletons.
-
-        expand(self, bm: ArrayBitMask) -> list[ArrayBitMask]:
-            Chooses a cell and lists the possible values for that cell.
-            Can optionally be overriden by the user.
-
-        prune_repeatedly(self, bm: ArrayBitMask) -> ArrayBitMask | None:
-            Repeatedly calls prune, until bm is no longer changed.
-
-        prune(self, bm: ArrayBitMask) -> ArrayBitMask | None:
-            Defines the rules of the problem. Should be implemented by
-            the user.
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        """Initializes a Backtracking object. Should create self.stack
-        attribute.
+        """Initializes a Backtracking object.
 
         Args:
             Whatever you want to pass as argument.
@@ -284,7 +245,7 @@ class Backtracking:
     def optimize(self, stack: list[ArrayBitMask], maximize: bool) -> tuple[ArrayInt, Int] | tuple[None, float]:
         sign = 1 if maximize else -1
         best_xm = None
-        best_score: float = -sign * np.inf
+        best_score: float = -sign * np.inf  # Start with worse possible score and improve from there
 
         stack = deepcopy(stack)
         while stack:

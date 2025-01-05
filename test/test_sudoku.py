@@ -2,12 +2,13 @@ import os
 
 import numpy as np
 import pytest
+from _pytest.fixtures import FixtureRequest
 
 from pyprune.backtracking import ArrayBitMask, ArrayInt, Backtracking, Int, rule
 
 
 class Sudoku(Backtracking):
-    def __init__(self, square_len: int):
+    def __init__(self, square_len: int) -> None:
         super().__init__()
         self.square_len = square_len
 
@@ -95,13 +96,13 @@ file_sudokus = os.path.join(os.path.dirname(__file__), "sudoku.txt")
 sudokus = parse_file_to_sudoku(file_sudokus)[:num_sudokus]
 
 
-@pytest.fixture()
+@pytest.fixture
 def solver() -> Sudoku:
     return Sudoku(square_len=3)
 
 
 @pytest.fixture(params=sudokus)
-def sudoku(request) -> ArrayInt:
+def sudoku(request: FixtureRequest) -> ArrayInt:
     return request.param
 
 

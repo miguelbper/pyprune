@@ -242,7 +242,12 @@ class Backtracking:
             rules.append(getattr(self, name))
         return rules
 
-    def optimize(self, stack: list[ArrayBitMask], maximize: bool) -> tuple[ArrayInt, Int] | tuple[None, float]:
+    def optimize(
+        self,
+        stack: list[ArrayBitMask],
+        maximize: bool,
+        verbose: bool = False,
+    ) -> tuple[ArrayInt, Int] | tuple[None, float]:
         sign = 1 if maximize else -1
         best_xm = None
         best_score: float = -sign * np.inf  # Start with worse possible score and improve from there
@@ -261,6 +266,10 @@ class Backtracking:
             if self.accept(bm):
                 best_xm: ArrayInt = self.grid(bm)
                 best_score: Int = score
+
+                if verbose:
+                    print(f"\n{best_score = }")
+                    print("best_xm = \n", best_xm, sep="")
             else:
                 stack += self.expand(bm)
 

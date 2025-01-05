@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from _pytest.fixtures import FixtureRequest
 
 from pyprune.backtracking import ArrayBitMask, ArrayInt, Backtracking, Int
 
@@ -13,12 +14,12 @@ num_random_arrays = 10
 
 
 @pytest.fixture(params=[2, 8], ids=lambda x: f"[k={x}]")
-def num_bits(request) -> int:
+def num_bits(request: FixtureRequest) -> int:
     return request.param
 
 
 @pytest.fixture(params=list(range(num_random_arrays)), ids=lambda x: f"[seed={x}]")
-def xm(request, num_bits: int) -> ArrayInt:
+def xm(request: FixtureRequest, num_bits: int) -> ArrayInt:
     rng = np.random.default_rng(request.param)
     return rng.integers(0, num_bits, (n, m), dtype=Int)
 

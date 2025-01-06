@@ -67,9 +67,6 @@ class SumOfSquares(Backtracking):
         self.pows_nums_digits = 1 << nums_digits  # (100000, 5)
 
     def prune(self, bm: ArrayBitMask) -> ArrayBitMask | None:
-        # rows = np.arange(1, 6, dtype=Int)
-        # cols = np.arange(6, 11, dtype=Int)
-        # pows = 10 ** np.arange(4, -1, -1, dtype=Int)
         catd = np.concatenate([bm, bm.T], axis=0)  # (10, 5)
         compatible = np.all(self.pows_nums_digits & catd.reshape(10, 1, 5), axis=2)  # (10, 100000)
         comp_divis = compatible & self.divisible  # (10, 100000)

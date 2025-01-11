@@ -10,6 +10,7 @@ of the problem.
 import inspect
 from collections.abc import Callable, Iterator
 from copy import deepcopy
+from math import prod
 from typing import TypeAlias
 
 import numpy as np
@@ -19,6 +20,10 @@ Int: TypeAlias = np.int32
 BitMask: TypeAlias = np.uint32
 ArrayInt: TypeAlias = NDArray[Int]
 ArrayBitMask: TypeAlias = NDArray[BitMask]
+
+
+def num_elements(bm: ArrayBitMask) -> int:
+    return prod(x.bit_count() for x in bm.flat)
 
 
 def rule(func: Callable) -> Callable:
@@ -62,7 +67,7 @@ class Backtracking:
         """
         self.rules = self.get_rules()
 
-    def solution_generator(self, stack: list[ArrayBitMask]) -> Iterator[ArrayInt]:
+    def solution_generator(self, stack: list[ArrayBitMask], verbose: bool = False) -> Iterator[ArrayInt]:
         """Generates solutions using backtracking algorithm.
 
         Generator that is called from the 'solution' and 'solutions'
@@ -72,30 +77,65 @@ class Backtracking:
             ArrayInt: A valid solution grid.
         """
         stack = deepcopy(stack)
+
+        self.track_progress = verbose and len(stack) == 1
+        if self.track_progress:
+            message_top = "Number of grids: "
+            message_bot = "Seen or rejected: "
+            num_message_chars = max(len(message_top), len(message_bot))
+            bm0 = stack[0]
+            self.num_total = num_elements(bm0)
+            self.num_pruned = 0
+            self.message_top_fmt = message_top.ljust(num_message_chars)
+            self.message_bot_fmt = message_bot.ljust(num_message_chars)
+            self.format_num = lambda x: str(x).rjust(len(str(self.num_total)))
+            print(self.message_top_fmt, self.num_total)
+
         while stack:
-            bm = self.prune_repeatedly(stack.pop())
+            bm_prev = stack.pop()
+            bm = self.prune_repeatedly(bm_prev)
+
+            if self.track_progress:
+                bm_curr = np.zeros_like(bm_prev) if bm is None else bm
+                num_rejected = num_elements(bm_prev) - num_elements(bm_curr)
+                self.num_pruned += num_rejected
+                percentage = f"{100 * self.num_pruned / self.num_total:.4f}%"
+                print(self.message_bot_fmt, f"{self.format_num(self.num_pruned)} => {percentage}", end="\r")
+
             if bm is None:
                 continue
             if self.accept(bm):
+                if self.track_progress:
+                    num_rejected = 1
+                    self.num_pruned += num_rejected
+                    percentage = f"{100 * self.num_pruned / self.num_total:.4f}%"
+                    print(self.message_bot_fmt, f"{self.format_num(self.num_pruned)} => {percentage}", end="\r")
+
                 yield self.grid(bm)
             else:
                 stack += self.expand(bm)
 
-    def solution(self, stack: list[ArrayBitMask]) -> ArrayInt | None:
+    def solution(self, stack: list[ArrayBitMask], verbose: bool = False) -> ArrayInt | None:
         """Finds a solution using a backtracking algorithm.
 
         Returns:
             ArrayInt | None: The solution grid if found, None otherwise.
         """
-        return next(self.solution_generator(stack), None)
+        ans = next(self.solution_generator(stack, verbose), None)
+        if self.track_progress:
+            print()  # Here to prevent overriting of the last progress print
+        return ans
 
-    def solutions(self, stack: list[ArrayBitMask]) -> list[ArrayInt]:
+    def solutions(self, stack: list[ArrayBitMask], verbose: bool = False) -> list[ArrayInt]:
         """Returns a list of all possible solutions for the problem.
 
         Returns:
             A list of ArrayInt objects representing the possible solutions.
         """
-        return list(self.solution_generator(stack))
+        ans = list(self.solution_generator(stack, verbose))
+        if self.track_progress:
+            print()  # Here to prevent overriting of the last progress print
+        return ans
 
     @staticmethod
     def grid(bm: ArrayBitMask) -> ArrayInt:

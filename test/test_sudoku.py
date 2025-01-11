@@ -115,3 +115,9 @@ class TestSudoku:
         assert solver.is_sudoku(sol)
         assert len(sols) == 1
         assert np.array_equal(sol, sols[0])
+
+    def test_progress(self, solver: Sudoku, sudoku: ArrayInt) -> None:
+        xm = sudoku
+        bm = np.where(xm, 1 << xm, unknown)
+        _ = solver.solutions([bm], verbose=True)
+        assert solver.num_pruned == solver.num_total

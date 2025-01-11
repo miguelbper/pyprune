@@ -259,8 +259,8 @@ class Backtracking:
                 continue
 
             # If current best score is better than all scores we could see, reject
-            score = self.criterion(bm)
-            if sign * (best_score - score) >= 0:
+            score = self.criterion(bm, best_score)
+            if score is None or sign * (best_score - score) >= 0:
                 continue
 
             if self.accept(bm):
@@ -275,5 +275,5 @@ class Backtracking:
 
         return best_xm, best_score
 
-    def criterion(self, bm: ArrayBitMask) -> Int:
+    def criterion(self, bm: ArrayBitMask, best_score: Int | float) -> Int | None:
         raise NotImplementedError("For optimization, criterion needs to be defined.")

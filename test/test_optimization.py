@@ -11,7 +11,7 @@ class SudokuOptimizeProd(Sudoku):
         super().__init__(square_len)
         self.maximize = maximize
 
-    def criterion(self, bm: ArrayBitMask) -> np.int64:
+    def criterion(self, bm: ArrayBitMask, best_score: Int | float) -> Int | None:
         # criterion is prod of the numbers formed by the digits in rows
         # maximize => criterion(bm) >= criterion(xm) for all xm => replace unknown by maximal value
         # minimize => criterion(bm) <= criterion(xm) for all xm => replace unknown by minimal value
@@ -77,7 +77,7 @@ class SumOfSquares(Backtracking):
         return bm
 
     @staticmethod
-    def criterion(bm: ArrayBitMask) -> np.int64:
+    def criterion(bm: ArrayBitMask, best_score: Int | float) -> Int | None:
         # criterion is prod of the numbers formed by the digits in rows
         # maximize => criterion(bm) >= criterion(xm) for all xm => replace unknown by maximal value
         xm = np.vectorize(lambda b: int(b).bit_length())(bm) - 1

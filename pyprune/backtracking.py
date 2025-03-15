@@ -26,10 +26,26 @@ IS_RULE: str = "is_rule"
 
 
 def num_elements(bm: ArrayBitMask) -> int:
+    """Count the total number of possible values across all cells.
+
+    Args:
+        bm (ArrayBitMask): The bitmask matrix representing possible values.
+
+    Returns:
+        int: The sum of the number of bits set to 1 across all cells.
+    """
     return prod(x.bit_count() for x in bm.flat)
 
 
 def rule(func: Rule) -> Rule:
+    """Decorator to mark a method as a rule for the backtracking algorithm.
+
+    Args:
+        func (Rule): The function to be marked as a rule.
+
+    Returns:
+        Rule: The decorated function.
+    """
     setattr(func, IS_RULE, True)  # noqa: B010
     return func
 
@@ -187,6 +203,16 @@ class Backtracking:
         return list(bm_copies)
 
     def branch_cell(self, bm: ArrayBitMask) -> tuple[np.intp, ...]:
+        """Find the cell with the fewest possible choices.
+
+        Args:
+            bm (ArrayBitMask): The choices matrix to analyze.
+
+        Returns:
+            tuple[np.intp, ...]: The multi-dimensional index of the cell with
+                fewest possible choices, excluding cells that are already
+                determined (have only one choice).
+        """
         powers_of_two = 1 << np.arange(32)
         cardinality = np.sum((bm[..., None] & powers_of_two) != 0, axis=-1)
         cardinality_unfilled = np.where(cardinality == 1, np.inf, cardinality)
@@ -246,6 +272,11 @@ class Backtracking:
         return bm
 
     def get_rules(self) -> list[Rule]:
+        """Get all methods marked with the @rule decorator.
+
+        Returns:
+            list[Rule]: A list of bound methods that were decorated with @rule.
+        """
         rules: list[Rule] = []
         for name, member in inspect.getmembers(self.__class__, predicate=inspect.isfunction):
             if getattr(member, IS_RULE, False):

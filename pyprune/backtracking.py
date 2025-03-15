@@ -41,11 +41,11 @@ class Backtracking:
             - Override
             - Do super().__init__()
 
-        3. expand -> expand_cell
+        3. branch -> branch_cell
             Options (from less to more "manual")
             - Leave the methods as is / do nothing
-            - Override expand_cell to specify what cell should be chosen
-            - Override expand to specify different logic
+            - Override branch_cell to specify what cell should be chosen
+            - Override branch to specify different logic
 
         4. prune_repeatedly -> prune -> @rule's
             Options (from less to more "manual")
@@ -87,7 +87,7 @@ class Backtracking:
             if self.accept(bm):
                 yield self.grid(bm)
             else:
-                stack += self.expand(bm)
+                stack += self.branch(bm)
 
     def solution(self, stack: list[ArrayBitMask]) -> ArrayInt | None:
         """Finds a solution using a backtracking algorithm.
@@ -148,10 +148,10 @@ class Backtracking:
         """
         return np.all(bm & (bm - 1) == 0)
 
-    def expand(self, bm: ArrayBitMask) -> list[ArrayBitMask]:
+    def branch(self, bm: ArrayBitMask) -> list[ArrayBitMask]:
         """Chooses a cell and lists the possible values for that cell.
 
-        Expands the given choices matrix by selecting the element with
+        Branches the given choices matrix by selecting the element with
         the fewest possible choices, and creating new choice matrices
         for each possible choice of that element.
 
@@ -163,13 +163,13 @@ class Backtracking:
         - bm was not accepted => there exists a cell of bm with c > 1
 
         When overriding, you must respect the following properties:
-        If ems = expand(bm), then
+        If ems = branch(bm), then
         - Refinement: For all em in ems, em ⊊ bm
         - No solutions are lost: For all solutions xm ⊂ bm, there
           exists em in ems such that xm ⊂ em
 
         Args:
-            bm (ArrayBitMask): The choices matrix to expand.
+            bm (ArrayBitMask): The choices matrix to branch.
 
         Returns:
             list[ArrayBitMask]: A list of new choice matrices, each
@@ -177,13 +177,13 @@ class Backtracking:
                 fewest possible choices.
         """
         powers_of_two = 1 << np.arange(32)
-        multi_index = self.expand_cell(bm)
+        multi_index = self.branch_cell(bm)
         powers_present = powers_of_two[bm[multi_index] & powers_of_two > 0]
         bm_copies = np.repeat(bm[np.newaxis, ...], len(powers_present), axis=0)
         bm_copies[:, *multi_index] = powers_present
         return list(bm_copies)
 
-    def expand_cell(self, bm: ArrayBitMask) -> tuple[np.intp, ...]:
+    def branch_cell(self, bm: ArrayBitMask) -> tuple[np.intp, ...]:
         powers_of_two = 1 << np.arange(32)
         cardinality = np.sum((bm[..., None] & powers_of_two) != 0, axis=-1)
         cardinality_unfilled = np.where(cardinality == 1, np.inf, cardinality)

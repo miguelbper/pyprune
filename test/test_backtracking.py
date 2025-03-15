@@ -69,7 +69,7 @@ class TestReject:
 class TestExpand:
     def test_expand(self, cm: ArrayBitMask) -> None:
         pb = Backtracking()
-        cms = np.stack(pb.expand(cm), axis=0)
+        cms = np.stack(pb.branch(cm), axis=0)
         comparisons = cms == cm
         comparison = comparisons[0]
         assert np.all(comparisons == comparison)

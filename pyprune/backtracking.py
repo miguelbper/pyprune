@@ -8,7 +8,7 @@ of the problem.
 """
 
 import inspect
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 from copy import deepcopy
 from math import prod
 from typing import Any, TypeAlias
@@ -20,7 +20,9 @@ Int: TypeAlias = np.int32
 BitMask: TypeAlias = np.int32
 ArrayInt: TypeAlias = NDArray[Int]
 ArrayBitMask: TypeAlias = NDArray[BitMask]
-Rule: TypeAlias = Callable[[ArrayBitMask], ArrayBitMask | None]
+Rule: TypeAlias = Any  # Callable[[ArrayBitMask], ArrayBitMask | None]
+
+IS_RULE: str = "is_rule"
 
 
 def num_elements(bm: ArrayBitMask) -> int:
@@ -28,7 +30,7 @@ def num_elements(bm: ArrayBitMask) -> int:
 
 
 def rule(func: Rule) -> Rule:
-    setattr(func, "rule", True)  # noqa: B010
+    setattr(func, IS_RULE, True)  # noqa: B010
     return func
 
 
@@ -207,7 +209,8 @@ class Backtracking:
             bm_new = self.prune(bm)
             if self.reject(bm_new):
                 return None
-            bm = bm_new  # type: ignore[assignment]
+            assert bm_new is not None
+            bm = bm_new
             prune_again = not np.array_equal(bm, bm_temp)
         return bm
 
@@ -244,12 +247,7 @@ class Backtracking:
 
     def get_rules(self) -> list[Rule]:
         rules: list[Rule] = []
-        for name, member in inspect.getmembers_static(self.__class__):
-            is_static = isinstance(member, staticmethod)
-            if not (inspect.isfunction(member) or is_static):
-                continue
-            func = member.__func__ if is_static else member
-            if not (getattr(func, "rule", False) or getattr(member, "rule", False)):
-                continue
-            rules.append(getattr(self, name))
+        for name, member in inspect.getmembers(self.__class__, predicate=inspect.isfunction):
+            if getattr(member, IS_RULE, False):
+                rules.append(getattr(self, name))
         return rules

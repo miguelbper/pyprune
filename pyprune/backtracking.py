@@ -20,7 +20,7 @@ Int: TypeAlias = np.int32
 BitMask: TypeAlias = np.int32
 ArrayInt: TypeAlias = NDArray[Int]
 ArrayBitMask: TypeAlias = NDArray[BitMask]
-Rule: TypeAlias = Any  # Callable[[ArrayBitMask], ArrayBitMask | None]
+Rule: TypeAlias = Any  # Should be Callable[[ArrayBitMask], ArrayBitMask | None], using Any to avoid type checker issues
 
 IS_RULE: str = "is_rule"
 

@@ -47,7 +47,7 @@ class Sudoku(Backtracking):
         return bm
 
     def is_sudoku(self, xm: ArrayInt) -> bool:
-        def unique(arr: np.ndarray) -> np.ndarray:
+        def unique(arr: ArrayInt) -> ArrayInt:
             return np.apply_along_axis(lambda x: np.unique(x).size, axis=1, arr=arr)
 
         k = self.square_len
@@ -78,13 +78,14 @@ def parse_file_to_sudoku(filename: str) -> list[ArrayInt]:
     Returns:
         list[Grid]: A list of Sudoku grids.
     """
-    sudokus = []
+    sudokus: list[ArrayInt] = []
     with open(filename) as file:
         for line in file:
-            line = line.strip()  # remove newline character
-            if len(line) == 81:  # 9*9 digits
-                sudoku = np.array(list(map(int, line))).reshape(9, 9)
-                sudokus.append(sudoku.astype(Int))
+            line: str = line.strip()  # remove newline character
+            nums: list[int] = list(map(int, line))
+            if len(nums) == 81:  # 9*9 digits
+                sudoku: ArrayInt = np.array(nums).reshape(9, 9).astype(Int)
+                sudokus.append(sudoku)
     return sudokus
 
 

@@ -4,30 +4,18 @@ from pyprune.backtracking import ArrayBitMask, Backtracking, Int
 
 
 class NothingIsSolution(Backtracking):
-    def __init__(self) -> None:
-        super().__init__()
-
-    @staticmethod
-    def prune(cm: ArrayBitMask) -> ArrayBitMask | None:
+    def prune(self, bm: ArrayBitMask) -> ArrayBitMask | None:
         return None
 
 
 class EverythingIsSolution(Backtracking):
-    def __init__(self) -> None:
-        super().__init__()
-
-    @staticmethod
-    def prune(cm: ArrayBitMask) -> ArrayBitMask | None:
-        return cm
+    def prune(self, bm: ArrayBitMask) -> ArrayBitMask | None:
+        return bm
 
 
 class OnlyZeros(Backtracking):
-    def __init__(self) -> None:
-        super().__init__()
-
-    @staticmethod
-    def prune(cm: ArrayBitMask) -> ArrayBitMask | None:
-        return cm & (1 << 0)
+    def prune(self, bm: ArrayBitMask) -> ArrayBitMask | None:
+        return bm & (1 << 0)
 
 
 nothing = NothingIsSolution()

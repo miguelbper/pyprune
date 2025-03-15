@@ -11,7 +11,7 @@ import inspect
 from collections.abc import Callable, Iterator
 from copy import deepcopy
 from math import prod
-from typing import TypeAlias
+from typing import Any, TypeAlias
 
 import numpy as np
 from numpy.typing import NDArray
@@ -20,14 +20,15 @@ Int: TypeAlias = np.int32
 BitMask: TypeAlias = np.int32
 ArrayInt: TypeAlias = NDArray[Int]
 ArrayBitMask: TypeAlias = NDArray[BitMask]
+Rule: TypeAlias = Callable[[ArrayBitMask], ArrayBitMask | None]
 
 
 def num_elements(bm: ArrayBitMask) -> int:
     return prod(x.bit_count() for x in bm.flat)
 
 
-def rule(func: Callable) -> Callable:
-    func.rule = True
+def rule(func: Rule) -> Rule:
+    setattr(func, "rule", True)  # noqa: B010
     return func
 
 
@@ -56,7 +57,7 @@ class Backtracking:
         5. Instantiate and call 'solution' or 'solutions' to find the solution(s).
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initializes a Backtracking object.
 
         Args:
@@ -241,8 +242,8 @@ class Backtracking:
                 return None
         return bm
 
-    def get_rules(self) -> list[Callable[[ArrayBitMask], ArrayBitMask | None]]:
-        rules = []
+    def get_rules(self) -> list[Rule]:
+        rules: list[Rule] = []
         for name, member in inspect.getmembers_static(self.__class__):
             is_static = isinstance(member, staticmethod)
             if not (inspect.isfunction(member) or is_static):

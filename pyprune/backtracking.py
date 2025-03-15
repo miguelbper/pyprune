@@ -281,39 +281,3 @@ class Backtracking:
                 continue
             rules.append(getattr(self, name))
         return rules
-
-    def optimize(
-        self,
-        stack: list[ArrayBitMask],
-        maximize: bool,
-        verbose: bool = False,
-    ) -> tuple[ArrayInt, Int] | tuple[None, float]:
-        sign = 1 if maximize else -1
-        best_xm = None
-        best_score: float = -sign * np.inf  # Start with worse possible score and improve from there
-
-        stack = deepcopy(stack)
-        while stack:
-            bm = self.prune_repeatedly(stack.pop())
-            if bm is None:
-                continue
-
-            # If current best score is better than all scores we could see, reject
-            score = self.criterion(bm, best_score)
-            if score is None or sign * (best_score - score) >= 0:
-                continue
-
-            if self.accept(bm):
-                best_xm: ArrayInt = self.grid(bm)
-                best_score: Int = score
-
-                if verbose:
-                    print(f"\n{best_score = }")
-                    print("best_xm = \n", best_xm, sep="")
-            else:
-                stack += self.expand(bm)
-
-        return best_xm, best_score
-
-    def criterion(self, bm: ArrayBitMask, best_score: Int | float) -> Int | None:
-        raise NotImplementedError("For optimization, criterion needs to be defined.")

@@ -3,7 +3,7 @@ name = "pyprune"
 version = "0.1.8"
 description = "Backtracking algorithm for constraint satisfaction puzzles."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = {file = "LICENSE"}
 authors = [
     {name = "Miguel Pereira", email = "miguel.b.per@gmail.com"},
@@ -14,9 +14,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pre-commit>=4.0.1",
+    "pre-commit>=4.1.0",
     "pytest-cov>=6.0.0",
-    "pytest>=8.3.3",
+    "pytest>=8.3.5",
 ]
 
 # ------------------------------------------------------------------------------
@@ -36,6 +36,13 @@ select = [
     "UP",  # pyupgrade
     "SIM",  # flake8-simplify
 ]
+
+# Set of rules taken from https://rdrn.me/postmodern-python/
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+strict = ["**/*.py"]
+pythonVersion = "3.11"
 
 # ------------------------------------------------------------------------------
 # Build

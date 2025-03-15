@@ -17,7 +17,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 Int: TypeAlias = np.int32
-BitMask: TypeAlias = np.uint32
+BitMask: TypeAlias = np.int32
 ArrayInt: TypeAlias = NDArray[Int]
 ArrayBitMask: TypeAlias = NDArray[BitMask]
 
@@ -233,7 +233,10 @@ class Backtracking:
         """
         bm = np.copy(bm)
         for func in self.rules:
-            bm = func(bm)
+            bm_temp = func(bm)
+            if bm_temp is None:
+                return None
+            bm = bm_temp
             if self.reject(bm):
                 return None
         return bm

@@ -48,7 +48,7 @@ class TestAccept:
     def test_dont_accept_inverse_power(self, bm: ArrayBitMask) -> None:
         assert not accept(np.invert(bm))
 
-    def test_dont_accept_expandible(self, cm: ArrayBitMask) -> None:
+    def test_dont_accept_branchable(self, cm: ArrayBitMask) -> None:
         assert not accept(cm)
 
 
@@ -62,12 +62,12 @@ class TestReject:
     def test_dont_reject_powers(self, bm: ArrayBitMask) -> None:
         assert not reject(bm)
 
-    def test_dont_reject_expandible(self, cm: ArrayBitMask) -> None:
+    def test_dont_reject_branchable(self, cm: ArrayBitMask) -> None:
         assert not reject(cm)
 
 
-class TestExpand:
-    def test_expand(self, cm: ArrayBitMask) -> None:
+class TestBranch:
+    def test_branch(self, cm: ArrayBitMask) -> None:
         pb = Backtracking()
         cms = np.stack(pb.branch(cm), axis=0)
         comparisons = cms == cm

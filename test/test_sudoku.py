@@ -57,7 +57,7 @@ class Sudoku(Backtracking):
         cols = xm.T
         sqrs = np.array([xm[i * k : (i + 1) * k, j * k : (j + 1) * k].flatten() for i in range(k) for j in range(k)])
         catd = np.concatenate([rows, cols, sqrs], axis=0)
-        return np.all(unique(catd) == n)
+        return bool(np.all(unique(catd) == n))
 
 
 def parse_file_to_sudoku(filename: str) -> list[ArrayInt]:
@@ -112,6 +112,7 @@ class TestSudoku:
         bm = np.where(xm, 1 << xm, unknown)
         sol = solver.solution([bm])
         sols = solver.solutions([bm])
+        assert sol is not None
         assert solver.is_sudoku(sol)
         assert len(sols) == 1
         assert np.array_equal(sol, sols[0])

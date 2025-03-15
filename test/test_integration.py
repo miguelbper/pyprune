@@ -70,12 +70,14 @@ class TestEverythingIsSolution:
     def test_bm_zero(self) -> None:
         sol = everything.solution([bm_zero])
         sols = everything.solutions([bm_zero])
+        assert sol is not None
         assert np.array_equal(1 << sol, bm_zero)
         assert len(sols) == 1
 
     def test_bm_ones(self) -> None:
         sol = everything.solution([bm_ones])
         sols = everything.solutions([bm_ones])
+        assert sol is not None
         assert np.array_equal(1 << sol, bm_ones)
         assert len(sols) == 1
 
@@ -84,12 +86,14 @@ class TestOnlyZeros:
     def test_unknown(self) -> None:
         sol = only_zeros.solution([unknown])
         sols = only_zeros.solutions([unknown])
+        assert sol is not None
         assert np.array_equal(1 << sol, bm_zero)
         assert len(sols) == 1
 
     def test_bm_zero(self) -> None:
         sol = only_zeros.solution([bm_zero])
         sols = only_zeros.solutions([bm_zero])
+        assert sol is not None
         assert np.array_equal(1 << sol, bm_zero)
         assert len(sols) == 1
 

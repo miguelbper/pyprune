@@ -8,26 +8,45 @@ of the problem.
 """
 
 import inspect
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 from copy import deepcopy
 from math import prod
-from typing import TypeAlias
+from typing import Any, TypeAlias
 
 import numpy as np
 from numpy.typing import NDArray
 
 Int: TypeAlias = np.int32
-BitMask: TypeAlias = np.uint32
+BitMask: TypeAlias = np.int32
 ArrayInt: TypeAlias = NDArray[Int]
 ArrayBitMask: TypeAlias = NDArray[BitMask]
+Rule: TypeAlias = Any  # Should be Callable[[ArrayBitMask], ArrayBitMask | None], using Any to avoid type checker issues
+
+IS_RULE: str = "is_rule"
 
 
 def num_elements(bm: ArrayBitMask) -> int:
+    """Count the total number of possible values across all cells.
+
+    Args:
+        bm (ArrayBitMask): The bitmask matrix representing possible values.
+
+    Returns:
+        int: The sum of the number of bits set to 1 across all cells.
+    """
     return prod(x.bit_count() for x in bm.flat)
 
 
-def rule(func: Callable) -> Callable:
-    func.rule = True
+def rule(func: Rule) -> Rule:
+    """Decorator to mark a method as a rule for the backtracking algorithm.
+
+    Args:
+        func (Rule): The function to be marked as a rule.
+
+    Returns:
+        Rule: The decorated function.
+    """
+    setattr(func, IS_RULE, True)  # noqa: B010
     return func
 
 
@@ -41,11 +60,11 @@ class Backtracking:
             - Override
             - Do super().__init__()
 
-        3. expand -> expand_cell
+        3. branch -> branch_cell
             Options (from less to more "manual")
             - Leave the methods as is / do nothing
-            - Override expand_cell to specify what cell should be chosen
-            - Override expand to specify different logic
+            - Override branch_cell to specify what cell should be chosen
+            - Override branch to specify different logic
 
         4. prune_repeatedly -> prune -> @rule's
             Options (from less to more "manual")
@@ -56,7 +75,7 @@ class Backtracking:
         5. Instantiate and call 'solution' or 'solutions' to find the solution(s).
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initializes a Backtracking object.
 
         Args:
@@ -67,7 +86,7 @@ class Backtracking:
         """
         self.rules = self.get_rules()
 
-    def solution_generator(self, stack: list[ArrayBitMask], verbose: bool = False) -> Iterator[ArrayInt]:
+    def solution_generator(self, stack: list[ArrayBitMask]) -> Iterator[ArrayInt]:
         """Generates solutions using backtracking algorithm.
 
         Generator that is called from the 'solution' and 'solutions'
@@ -78,64 +97,32 @@ class Backtracking:
         """
         stack = deepcopy(stack)
 
-        self.track_progress = verbose and len(stack) == 1
-        if self.track_progress:
-            message_top = "Number of grids: "
-            message_bot = "Seen or rejected: "
-            num_message_chars = max(len(message_top), len(message_bot))
-            bm0 = stack[0]
-            self.num_total = num_elements(bm0)
-            self.num_pruned = 0
-            self.message_top_fmt = message_top.ljust(num_message_chars)
-            self.message_bot_fmt = message_bot.ljust(num_message_chars)
-            self.format_num = lambda x: str(x).rjust(len(str(self.num_total)))
-            print(self.message_top_fmt, self.num_total)
-
         while stack:
             bm_prev = stack.pop()
             bm = self.prune_repeatedly(bm_prev)
 
-            if self.track_progress:
-                bm_curr = np.zeros_like(bm_prev) if bm is None else bm
-                num_rejected = num_elements(bm_prev) - num_elements(bm_curr)
-                self.num_pruned += num_rejected
-                percentage = f"{100 * self.num_pruned / self.num_total:.4f}%"
-                print(self.message_bot_fmt, f"{self.format_num(self.num_pruned)} => {percentage}", end="\r")
-
             if bm is None:
                 continue
             if self.accept(bm):
-                if self.track_progress:
-                    num_rejected = 1
-                    self.num_pruned += num_rejected
-                    percentage = f"{100 * self.num_pruned / self.num_total:.4f}%"
-                    print(self.message_bot_fmt, f"{self.format_num(self.num_pruned)} => {percentage}", end="\r")
-
                 yield self.grid(bm)
             else:
-                stack += self.expand(bm)
+                stack += self.branch(bm)
 
-    def solution(self, stack: list[ArrayBitMask], verbose: bool = False) -> ArrayInt | None:
+    def solution(self, stack: list[ArrayBitMask]) -> ArrayInt | None:
         """Finds a solution using a backtracking algorithm.
 
         Returns:
             ArrayInt | None: The solution grid if found, None otherwise.
         """
-        ans = next(self.solution_generator(stack, verbose), None)
-        if self.track_progress:
-            print()  # Here to prevent overriting of the last progress print
-        return ans
+        return next(self.solution_generator(stack), None)
 
-    def solutions(self, stack: list[ArrayBitMask], verbose: bool = False) -> list[ArrayInt]:
+    def solutions(self, stack: list[ArrayBitMask]) -> list[ArrayInt]:
         """Returns a list of all possible solutions for the problem.
 
         Returns:
             A list of ArrayInt objects representing the possible solutions.
         """
-        ans = list(self.solution_generator(stack, verbose))
-        if self.track_progress:
-            print()  # Here to prevent overriting of the last progress print
-        return ans
+        return list(self.solution_generator(stack))
 
     @staticmethod
     def grid(bm: ArrayBitMask) -> ArrayInt:
@@ -180,10 +167,10 @@ class Backtracking:
         """
         return np.all(bm & (bm - 1) == 0)
 
-    def expand(self, bm: ArrayBitMask) -> list[ArrayBitMask]:
+    def branch(self, bm: ArrayBitMask) -> list[ArrayBitMask]:
         """Chooses a cell and lists the possible values for that cell.
 
-        Expands the given choices matrix by selecting the element with
+        Branches the given choices matrix by selecting the element with
         the fewest possible choices, and creating new choice matrices
         for each possible choice of that element.
 
@@ -195,13 +182,13 @@ class Backtracking:
         - bm was not accepted => there exists a cell of bm with c > 1
 
         When overriding, you must respect the following properties:
-        If ems = expand(bm), then
+        If ems = branch(bm), then
         - Refinement: For all em in ems, em ⊊ bm
         - No solutions are lost: For all solutions xm ⊂ bm, there
           exists em in ems such that xm ⊂ em
 
         Args:
-            bm (ArrayBitMask): The choices matrix to expand.
+            bm (ArrayBitMask): The choices matrix to branch.
 
         Returns:
             list[ArrayBitMask]: A list of new choice matrices, each
@@ -209,13 +196,23 @@ class Backtracking:
                 fewest possible choices.
         """
         powers_of_two = 1 << np.arange(32)
-        multi_index = self.expand_cell(bm)
+        multi_index = self.branch_cell(bm)
         powers_present = powers_of_two[bm[multi_index] & powers_of_two > 0]
         bm_copies = np.repeat(bm[np.newaxis, ...], len(powers_present), axis=0)
         bm_copies[:, *multi_index] = powers_present
         return list(bm_copies)
 
-    def expand_cell(self, bm: ArrayBitMask) -> tuple[np.intp, ...]:
+    def branch_cell(self, bm: ArrayBitMask) -> tuple[np.intp, ...]:
+        """Find the cell with the fewest possible choices.
+
+        Args:
+            bm (ArrayBitMask): The choices matrix to analyze.
+
+        Returns:
+            tuple[np.intp, ...]: The multi-dimensional index of the cell with
+                fewest possible choices, excluding cells that are already
+                determined (have only one choice).
+        """
         powers_of_two = 1 << np.arange(32)
         cardinality = np.sum((bm[..., None] & powers_of_two) != 0, axis=-1)
         cardinality_unfilled = np.where(cardinality == 1, np.inf, cardinality)
@@ -238,7 +235,8 @@ class Backtracking:
             bm_new = self.prune(bm)
             if self.reject(bm_new):
                 return None
-            bm = bm_new  # type: ignore[assignment]
+            assert bm_new is not None
+            bm = bm_new
             prune_again = not np.array_equal(bm, bm_temp)
         return bm
 
@@ -265,55 +263,22 @@ class Backtracking:
         """
         bm = np.copy(bm)
         for func in self.rules:
-            bm = func(bm)
+            bm_temp = func(bm)
+            if bm_temp is None:
+                return None
+            bm = bm_temp
             if self.reject(bm):
                 return None
         return bm
 
-    def get_rules(self) -> list[Callable[[ArrayBitMask], ArrayBitMask | None]]:
-        rules = []
-        for name, member in inspect.getmembers_static(self.__class__):
-            is_static = isinstance(member, staticmethod)
-            if not (inspect.isfunction(member) or is_static):
-                continue
-            func = member.__func__ if is_static else member
-            if not (getattr(func, "rule", False) or getattr(member, "rule", False)):
-                continue
-            rules.append(getattr(self, name))
+    def get_rules(self) -> list[Rule]:
+        """Get all methods marked with the @rule decorator.
+
+        Returns:
+            list[Rule]: A list of bound methods that were decorated with @rule.
+        """
+        rules: list[Rule] = []
+        for name, member in inspect.getmembers(self.__class__, predicate=inspect.isfunction):
+            if getattr(member, IS_RULE, False):
+                rules.append(getattr(self, name))
         return rules
-
-    def optimize(
-        self,
-        stack: list[ArrayBitMask],
-        maximize: bool,
-        verbose: bool = False,
-    ) -> tuple[ArrayInt, Int] | tuple[None, float]:
-        sign = 1 if maximize else -1
-        best_xm = None
-        best_score: float = -sign * np.inf  # Start with worse possible score and improve from there
-
-        stack = deepcopy(stack)
-        while stack:
-            bm = self.prune_repeatedly(stack.pop())
-            if bm is None:
-                continue
-
-            # If current best score is better than all scores we could see, reject
-            score = self.criterion(bm, best_score)
-            if score is None or sign * (best_score - score) >= 0:
-                continue
-
-            if self.accept(bm):
-                best_xm: ArrayInt = self.grid(bm)
-                best_score: Int = score
-
-                if verbose:
-                    print(f"\n{best_score = }")
-                    print("best_xm = \n", best_xm, sep="")
-            else:
-                stack += self.expand(bm)
-
-        return best_xm, best_score
-
-    def criterion(self, bm: ArrayBitMask, best_score: Int | float) -> Int | None:
-        raise NotImplementedError("For optimization, criterion needs to be defined.")

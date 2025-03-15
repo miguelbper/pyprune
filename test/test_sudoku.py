@@ -47,7 +47,7 @@ class Sudoku(Backtracking):
         return bm
 
     def is_sudoku(self, xm: ArrayInt) -> bool:
-        def unique(arr: np.ndarray) -> np.ndarray:
+        def unique(arr: ArrayInt) -> ArrayInt:
             return np.apply_along_axis(lambda x: np.unique(x).size, axis=1, arr=arr)
 
         k = self.square_len
@@ -57,7 +57,7 @@ class Sudoku(Backtracking):
         cols = xm.T
         sqrs = np.array([xm[i * k : (i + 1) * k, j * k : (j + 1) * k].flatten() for i in range(k) for j in range(k)])
         catd = np.concatenate([rows, cols, sqrs], axis=0)
-        return np.all(unique(catd) == n)
+        return bool(np.all(unique(catd) == n))
 
 
 def parse_file_to_sudoku(filename: str) -> list[ArrayInt]:
@@ -78,13 +78,14 @@ def parse_file_to_sudoku(filename: str) -> list[ArrayInt]:
     Returns:
         list[Grid]: A list of Sudoku grids.
     """
-    sudokus = []
+    sudokus: list[ArrayInt] = []
     with open(filename) as file:
         for line in file:
-            line = line.strip()  # remove newline character
-            if len(line) == 81:  # 9*9 digits
-                sudoku = np.array(list(map(int, line))).reshape(9, 9)
-                sudokus.append(sudoku.astype(Int))
+            line: str = line.strip()  # remove newline character
+            nums: list[int] = list(map(int, line))
+            if len(nums) == 81:  # 9*9 digits
+                sudoku: ArrayInt = np.array(nums).reshape(9, 9).astype(Int)
+                sudokus.append(sudoku)
     return sudokus
 
 
@@ -112,12 +113,7 @@ class TestSudoku:
         bm = np.where(xm, 1 << xm, unknown)
         sol = solver.solution([bm])
         sols = solver.solutions([bm])
+        assert sol is not None
         assert solver.is_sudoku(sol)
         assert len(sols) == 1
         assert np.array_equal(sol, sols[0])
-
-    def test_progress(self, solver: Sudoku, sudoku: ArrayInt) -> None:
-        xm = sudoku
-        bm = np.where(xm, 1 << xm, unknown)
-        _ = solver.solutions([bm], verbose=True)
-        assert solver.num_pruned == solver.num_total

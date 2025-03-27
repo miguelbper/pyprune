@@ -5,7 +5,7 @@
 [![NumPy](https://img.shields.io/badge/NumPy-4dabcf?logo=numpy&logoColor=white)](https://numpy.org/)
 [![Ruff](https://img.shields.io/badge/Ruff-261230?logo=ruff&logoColor=white)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/badge/uv-de5fe9?logo=uv&logoColor=white)](https://github.com/astral-sh/uv)
-[![license](https://img.shields.io/badge/license-MIT-green.svg?labelColor=gray)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?labelColor=gray)](LICENSE)
 
 A simple interface to create solvers for constraint satisfaction problems
 

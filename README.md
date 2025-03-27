@@ -82,7 +82,7 @@ class Sudoku(Backtracking):
         return bm
 ```
 
-In the example above, we use bit masks. PyPrune assumes that the puzzle we are trying to solve consists of filling numbers in a grid. This grid is represented as a numpy array. Each cell in this array consists of an integer bitmask with 1s on the bits of numbers that could be in that cell. Using as an example the Sudoku above, if a cell has the value $(672)_{10} = (2^5 + 2^7 + 2^9)_{10} = (1010100000)_2$, this means that in the Sudoku puzzle, the possible values for that cell are $\{5,7,9\}$.
+In the example above, we use bit masks. PyPrune assumes that the puzzle we are trying to solve consists of filling numbers in a grid. This grid is represented as a numpy array. Each cell in this array consists of an integer bitmask with 1s on the bits of numbers that could be in that cell. Using as an example the Sudoku above, if a cell has the value $`(672)_{10} = (2^5 + 2^7 + 2^9)_{10} = (1010100000)_2`$, this means that in the Sudoku puzzle, the possible values for that cell are $`\{5,7,9\}`$.
 
 Finally, to solve the puzzle, instantiate the solver with an initial condition and call `.solution()`.
 

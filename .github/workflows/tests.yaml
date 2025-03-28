@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  coverage:
+  unit-tests:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -26,6 +26,8 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install the project
         run: uv sync --all-extras --dev

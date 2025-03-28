@@ -53,6 +53,7 @@ class TestNothingIsSolution:
 class TestEverythingIsSolution:
     def test_unknown(self) -> None:
         sols = everything.solutions([unknown])
+        assert False  # noqa
         assert len(sols) == num_bits ** (n * m)
 
     def test_bm_zero(self) -> None:

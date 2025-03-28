@@ -10,7 +10,6 @@ of the problem.
 import inspect
 from collections.abc import Iterator
 from copy import deepcopy
-from math import prod
 from typing import Any, TypeAlias
 
 import numpy as np
@@ -23,18 +22,6 @@ ArrayBitMask: TypeAlias = NDArray[BitMask]
 Rule: TypeAlias = Any  # Should be Callable[[ArrayBitMask], ArrayBitMask | None], using Any to avoid type checker issues
 
 IS_RULE: str = "is_rule"
-
-
-def num_elements(bm: ArrayBitMask) -> int:
-    """Count the total number of possible values across all cells.
-
-    Args:
-        bm (ArrayBitMask): The bitmask matrix representing possible values.
-
-    Returns:
-        int: The sum of the number of bits set to 1 across all cells.
-    """
-    return prod(x.bit_count() for x in bm.flat)
 
 
 def rule(func: Rule) -> Rule:

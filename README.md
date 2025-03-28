@@ -6,6 +6,8 @@
 [![Ruff](https://img.shields.io/badge/Ruff-261230?logo=ruff&logoColor=white)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/badge/uv-de5fe9?logo=uv&logoColor=white)](https://github.com/astral-sh/uv)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?labelColor=gray)](LICENSE)
+[![Code Quality](https://github.com/miguelbper/pyprune/actions/workflows/code-quality.yaml/badge.svg)](https://github.com/miguelbper/pyprune/actions/workflows/code-quality.yaml)
+[![Unit Tests](https://github.com/miguelbper/pyprune/actions/workflows/tests.yaml/badge.svg)](https://github.com/miguelbper/pyprune/actions/workflows/tests.yaml)
 
 A simple interface to create solvers for constraint satisfaction problems
 

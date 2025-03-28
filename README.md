@@ -8,6 +8,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg?labelColor=gray)](LICENSE)
 [![Code Quality](https://github.com/miguelbper/pyprune/actions/workflows/code-quality.yaml/badge.svg)](https://github.com/miguelbper/pyprune/actions/workflows/code-quality.yaml)
 [![Unit Tests](https://github.com/miguelbper/pyprune/actions/workflows/tests.yaml/badge.svg)](https://github.com/miguelbper/pyprune/actions/workflows/tests.yaml)
+[![codecov](https://codecov.io/gh/miguelbper/pyprune/graph/badge.svg)](https://codecov.io/gh/miguelbper/pyprune)
 
 A simple interface to create solvers for constraint satisfaction problems
 

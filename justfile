@@ -69,4 +69,4 @@ increment-version:
     git add pyproject.toml
     git commit -m "Update version to $NEW_VERSION"
     git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
-    git push origin "v$NEW_VERSION"
+    git push --follow-tags origin main

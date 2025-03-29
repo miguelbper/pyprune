@@ -48,9 +48,9 @@ test:
 test-cov:
     uv run pytest --cov=pyprune --cov-report=html
 
-# Increment version (+ trigger a release GitHub actions workflow)
+# Publish a new release (on GitHub and on PyPI via GitHub Actions)
 [group("packaging")]
-increment-version:
+publish:
     #!/usr/bin/env bash
     # Get current version from pyproject.toml
     CURRENT_VERSION=$(grep '^version = ' pyproject.toml | cut -d'"' -f2)

@@ -39,11 +39,11 @@ algorithm for free. This means that we only need to implement the rules
 specific to the puzzle, i.e. the logic of how to fill the puzzle as if "by hand".
 
 The `Backtracking` class takes care of repeatedly using the rules to fill the
-grid util it finds a mistake, solves the puzzle, or becomes blocked, and adapts
+grid until it finds a mistake, solves the puzzle, or becomes blocked, and adapts
 to each case:
 - If it solves the puzzle, it returns the grid
 - If it finds a mistake, it rejects the current grid and backtracks to a previous grid
-- If it becomes blocked, it chooses a cell and makes a guess on how to fill that cell
+- If it becomes blocked, it chooses a cell and guesses how to fill that cell
 
 To implement the solver class, just add methods decorated with `rule` that
 specify how you want to fill the grid.
@@ -121,7 +121,7 @@ The combination of backtracking, bitmasks, and representing the grids as NumPy a
 
 ## Why not just use a SAT or CSP solver?
 
-There exist excelent libraries like [Z3](https://github.com/Z3Prover/z3) and [OR-Tools](https://github.com/google/or-tools) that allow us to solve constraint satisfaction problems using a simple declarative language, while being exremely fast. I use pyprune in scenarios where the problem/puzzle is not easy to express in the language offered by these libraries.
+There exist excellent libraries like [Z3](https://github.com/Z3Prover/z3) and [OR-Tools](https://github.com/google/or-tools) that allow us to solve constraint satisfaction problems using a simple declarative language, while being extremelly fast. I use pyprune in scenarios where the problem/puzzle is not easy to express in the language offered by these libraries.
 
 ## License
 

@@ -20,47 +20,29 @@ class Sudoku(Backtracking):
             ArrayBitMask | None: The updated ArrayBitMask matrix after applying
                 the Sudoku rules.
         """
-        # loop over grid
-        for i in range(9):
-            for j in range(9):
-                # look at bitmask in the current cell
-                c = bm[i, j]
-
-                # if bitmask is empty,
-                # meaning, no numbers are possible for that cell
-                # reject by returning None
-                if not c:
-                    return None
-
-                # if the bitmask is a singleton / power of two
-                # meaning, that we know the number in that cell
-                # then declare that cells in same square, row, col can't have the same num
-                if c & (c - 1) == 0:
-                    mask = ~c
-                    u = (i // 3) * 3
-                    v = (j // 3) * 3
-                    bm[i, :] &= mask
-                    bm[:, j] &= mask
-                    bm[u : u + 3, v : v + 3] &= mask
-                    bm[i, j] = c
+        for (i, j), b in np.ndenumerate(bm):
+            if not b:  # if the cell is empty, reject grid
+                return None
+            if b & (b - 1) == 0:  # if only one number is possible in this cell...
+                mask = ~b  # ...then declare that cells in same square, row, col can't have the same num
+                box_i = (i // 3) * 3
+                box_j = (j // 3) * 3
+                bm[i, :] &= mask  # update the row
+                bm[:, j] &= mask  # update the column
+                bm[box_i : box_i + 3, box_j : box_j + 3] &= mask  # update the box
+                bm[i, j] = b  # reset the cell to the initial bitmask
         return bm
 
 
 def sudoku_solver(sudoku: ArrayInt) -> ArrayInt | None:
     solver = Sudoku()
-
-    # Convert the grid to a bitmask matrix
-    # unknown cell -> bitmask of 1111111110, meaning all numbers are possible
-    unknown = sum(1 << i for i in range(1, 10))
-    bm = np.where(sudoku, 1 << sudoku, unknown)
-
-    # Solve the grid (by providing the initial stack with just the bitmask matrix)
-    sol = solver.solution([bm])
+    unknown = sum(1 << i for i in range(1, 10))  # (1111111110)_2 - all numbers are possible
+    bm = np.where(sudoku, 1 << sudoku, unknown)  # array of bitmasks for initial grid
+    sol = solver.solution([bm])  # input to solver is the initial stack of ArrayBitMask
     return sol
 
 
 def main() -> None:
-    # Example sudoku
     sudoku = np.array(
         [
             [0, 0, 0, 0, 7, 5, 4, 0, 0],

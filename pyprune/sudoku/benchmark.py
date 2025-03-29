@@ -22,6 +22,7 @@ def main() -> None:
     num_sudokus = 1000
     time_taken = benchmark(file_sudokus, num_sudokus)
     print(f"Time taken: {time_taken} seconds")
+    # Time taken: 1.8059041500091553 seconds
 
 
 if __name__ == "__main__":

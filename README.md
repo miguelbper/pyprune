@@ -1,6 +1,6 @@
 <div align="center">
 
-# PyPrune
+# pyprune
 [![Python](https://img.shields.io/badge/Python-3776ab?logo=python&logoColor=white)](https://www.python.org/)
 [![NumPy](https://img.shields.io/badge/NumPy-4dabcf?logo=numpy&logoColor=white)](https://numpy.org/)
 [![Ruff](https://img.shields.io/badge/Ruff-261230?logo=ruff&logoColor=white)](https://github.com/astral-sh/ruff)
@@ -18,7 +18,7 @@ A simple interface to create fast solvers for constraint satisfaction problems
 
 ## Description
 
-Offers a `Backtracking` class that implements a backtracking algorithm. The class is general purpose and can be used to solve a general constraint satisfaction puzzle in a grid. Users should inherit from this class and add the rules of the problem.
+Offers a `Backtracking` class that implements a backtracking algorithm. The class is general purpose and can be used to solve a general constraint satisfaction puzzle in a grid. Users should inherit from this class and add the rules of the problem. The package is tiny, has NumPy as its only dependency, and can be used as a learning resource if you want to learn how to implement an algorithm like this yourself.
 
 ## Installation
 
@@ -31,24 +31,29 @@ pip install pyprune
 
 ### Solver class
 
-We will use Sudoku as an example of a problem that can be solved with PyPrune. We will walk through this [example](pyprune/sudoku/sudoku.py) file.
+We will use Sudoku as an example of a problem that can be solved with pyprune. We will walk through this [example](pyprune/sudoku/sudoku.py) file.
 
 To create a Sudoku solver, we create a new class `Sudoku` which inherits from
 `Backtracking`. By subclassing `Backtracking`, we get a generic backtracking
-algorithm "for free". This means that we only need to implement the rules
-specific to the puzzle, i.e. the logic of how to fill the puzzle "by hand".
+algorithm for free. This means that we only need to implement the rules
+specific to the puzzle, i.e. the logic of how to fill the puzzle as if "by hand".
 
 The `Backtracking` class takes care of repeatedly using the rules to fill the
-grid util it finds a mistake, solves the puzzle, or becomes blocked, and adapt
+grid util it finds a mistake, solves the puzzle, or becomes blocked, and adapts
 to each case:
-- finds a mistake: rejects the current grid and backtracks to a previous grid
-- solves the puzzle: returns the grid
-- becomes blocked: make a guess on how to fill the grid
+- If it solves the puzzle, it returns the grid
+- If it finds a mistake, it rejects the current grid and backtracks to a previous grid
+- If it becomes blocked, it chooses a cell and makes a guess on how to fill that cell
 
 To implement the solver class, just add methods decorated with `rule` that
 specify how you want to fill the grid.
 
 ```python
+import numpy as np
+
+from pyprune.backtracking import ArrayBitMask, ArrayInt, Backtracking, rule
+
+
 class Sudoku(Backtracking):
     @rule
     def sudoku(self, bm: ArrayBitMask) -> ArrayBitMask | None:
@@ -92,9 +97,11 @@ class Sudoku(Backtracking):
         return bm
 ```
 
+That's it! The code above is a fully-fledged sudoku solver. We will just need to instantiate it and then call the solver for a specific puzzle we want to solve.
+
 ### Bit masks
 
-In the example above, we use bit masks. PyPrune assumes that the puzzle we are trying to solve consists of filling numbers in a grid. This grid is represented as a numpy array. Each cell in this array consists of an integer bitmask with 1s on the bits of numbers that could be in that cell. Using as an example the Sudoku above, if a cell has the value $`(672)_{10} = (2^5 + 2^7 + 2^9)_{10} = (1010100000)_2`$, this means that in the Sudoku puzzle, the possible values for that cell are $`\{5,7,9\}`$.
+In the example above, we use bit masks. pyprune assumes that the puzzle we are trying to solve consists of filling numbers in a grid. This grid is represented as a NumPy array. Each cell in this array consists of an integer bitmask with 1s on the bits of numbers that could be in that cell. Using as an example the Sudoku above, if a cell has the value $`(672)_{10} = (2^5 + 2^7 + 2^9)_{10} = (1010100000)_2`$, this means that in the Sudoku puzzle, the possible values for that cell are $`\{5,7,9\}`$.
 
 ### Solving the puzzle
 
@@ -141,11 +148,11 @@ print(solution)
 
 ## Performance
 
-The combination of **backtracking**, **bitmasks**, and representing the grids as **numpy arrays** (and using numpy array methods to do the computations on the grid) yields very fast algorithms for different puzzles. The speed [benchmark](pyprune/sudoku/benchmark.py) for sudokus shows that the algorithm above can solve 1000 sudokus in less than 2 seconds.
+The combination of backtracking, bitmasks, and representing the grids as NumPy arrays yields very fast algorithms for different puzzles. The speed [benchmark](pyprune/sudoku/benchmark.py) for sudokus shows that the algorithm above can solve **1000 sudokus in less than 2 seconds**.
 
 ## Why not just use a SAT or CSP solver?
 
-There exist excelent libraries like [Z3](https://github.com/Z3Prover/z3) and [OR-Tools](https://github.com/google/or-tools) that allow us to solve constraint satisfaction problems using a simple declarative language, while being exremely fast. I use PyPrune in scenarios where the problem/puzzle is not easy to express in the language offered by these libraries.
+There exist excelent libraries like [Z3](https://github.com/Z3Prover/z3) and [OR-Tools](https://github.com/google/or-tools) that allow us to solve constraint satisfaction problems using a simple declarative language, while being exremely fast. I use pyprune in scenarios where the problem/puzzle is not easy to express in the language offered by these libraries.
 
 ## License
 

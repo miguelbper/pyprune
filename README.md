@@ -98,14 +98,9 @@ sudoku = np.array(
 )
 
 solver = Sudoku()
-
-# Convert the grid to a bitmask matrix
-# unknown cell -> bitmask of 1111111110, meaning all numbers are possible
-unknown = sum(1 << i for i in range(1, 10))
-bm = np.where(sudoku, 1 << sudoku, unknown)
-
-# Solve the grid (by providing the initial stack with just the bitmask matrix)
-sol = solver.solution([bm])
+unknown = sum(1 << i for i in range(1, 10))  # (1111111110)_2 - all numbers are possible
+bm = np.where(sudoku, 1 << sudoku, unknown)  # array of bitmasks for initial grid
+sol = solver.solution([bm])  # input to solver is the initial stack of ArrayBitMask
 print(solution)
 """
 [[6 9 3 8 7 5 4 1 2]

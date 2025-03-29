@@ -10,7 +10,7 @@
 [![codecov](https://codecov.io/gh/miguelbper/pyprune/graph/badge.svg)](https://codecov.io/gh/miguelbper/pyprune)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?labelColor=gray)](LICENSE)
 
-A simple interface to create solvers for constraint satisfaction problems
+A simple interface to create fast solvers for constraint satisfaction problems
 
 </div>
 

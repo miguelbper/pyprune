@@ -3,7 +3,6 @@ import numpy as np
 from pyprune.backtracking import ArrayBitMask, ArrayInt, Backtracking, rule
 
 
-# Define the solver class
 class Sudoku(Backtracking):
     @rule
     def sudoku(self, bm: ArrayBitMask) -> ArrayBitMask | None:
@@ -48,7 +47,6 @@ class Sudoku(Backtracking):
 
 
 def sudoku_solver(sudoku: ArrayInt) -> ArrayInt | None:
-    # Instantiate the solver
     solver = Sudoku()
 
     # Convert the grid to a bitmask matrix

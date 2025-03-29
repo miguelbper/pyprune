@@ -61,7 +61,7 @@ class Sudoku(Backtracking):
             if not b:  # if the cell is empty, reject grid
                 return None
             if b & (b - 1) == 0:  # if only one number is possible in this cell...
-                mask = ~b  # ...then declare that cells in same square, row, col can't have the same num
+                mask = ~b
                 box_i = (i // 3) * 3
                 box_j = (j // 3) * 3
                 bm[i, :] &= mask  # update the row

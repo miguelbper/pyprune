@@ -32,7 +32,7 @@ def parse_file_to_sudoku(filename: Path | str) -> list[ArrayInt]:
     ...
 
     Args:
-        filename (str): The path to the file containing Sudoku puzzles.
+        filename (Path | str): The path to the file containing Sudoku puzzles.
 
     Returns:
         list[Grid]: A list of Sudoku grids.

@@ -35,11 +35,18 @@ class Sudoku(Backtracking):
 
 
 def sudoku_solver(sudoku: ArrayInt) -> ArrayInt | None:
+    """Solves a Sudoku puzzle.
+
+    Args:
+        sudoku (ArrayInt): The initial Sudoku grid.
+
+    Returns:
+        ArrayInt | None: The solution grid if found, None otherwise.
+    """
     solver = Sudoku()
     unknown = sum(1 << i for i in range(1, 10))  # (1111111110)_2 - all numbers are possible
     bm = np.where(sudoku, 1 << sudoku, unknown)  # array of bitmasks for initial grid
-    sol = solver.solution([bm])  # input to solver is the initial stack of ArrayBitMask
-    return sol
+    return solver.solution([bm])  # input to solver is the initial stack of ArrayBitMask
 
 
 def main() -> None:

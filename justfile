@@ -7,6 +7,12 @@ default:
 check-versions:
     uv --version
     just --version
+    direnv --version
+
+# Allow direnv to load environment variables
+[group("installation")]
+direnv-allow:
+    direnv allow
 
 # Create uv virtual environment
 [group("installation")]
@@ -18,9 +24,14 @@ create-venv:
 install-pre-commit:
     uv run pre-commit install
 
+# Setup environment variables (reminder)
+[group("installation")]
+reminder-env-vars:
+    @echo "\033[1;33mRemember to setup the environment variables by editing the .envrc file!\033[0m"
+
 # Setup repo
 [group("installation")]
-setup: create-venv install-pre-commit
+setup: direnv-allow create-venv install-pre-commit reminder-env-vars
 
 # Run pre-commit hooks
 [group("linting & formatting")]
@@ -37,7 +48,7 @@ test:
 test-cov:
     uv run pytest --cov=. --cov-report=html
 
-# Increment version (and trigger a release on GitHub)
+# Increment version (+ trigger a release GitHub actions workflow)
 [group("packaging")]
 increment-version:
     #!/usr/bin/env bash

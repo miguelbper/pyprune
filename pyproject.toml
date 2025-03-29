@@ -1,6 +1,6 @@
 [project]
 name = "pyprune"
-version = "0.1.10"
+version = "0.1.11"
 description = "Backtracking algorithm for constraint satisfaction puzzles."
 readme = "README.md"
 requires-python = ">=3.11"

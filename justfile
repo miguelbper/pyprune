@@ -64,6 +64,7 @@ increment-version:
 
     # Update version in pyproject.toml
     sed -i '' "s/^version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
+    uv sync
 
     # Create git tag
     git add pyproject.toml

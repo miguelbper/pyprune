@@ -1,5 +1,4 @@
 from pathlib import Path
-from runpy import run_module
 
 import numpy as np
 import pytest
@@ -48,7 +47,11 @@ class TestSudokuBenchmark:
 
 class TestRunFiles:
     def test_run_sudoku(self) -> None:
-        run_module("pyprune.sudoku.sudoku", run_name="__main__")
+        from pyprune.sudoku.sudoku import main
+
+        main()
 
     def test_run_benchmark(self) -> None:
-        run_module("pyprune.sudoku.benchmark", run_name="__main__")
+        from pyprune.sudoku.benchmark import main
+
+        main()

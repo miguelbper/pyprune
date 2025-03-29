@@ -213,7 +213,7 @@ wheels = [
 
 [[package]]
 name = "pyprune"
-version = "0.1.9"
+version = "0.1.12"
 source = { editable = "." }
 dependencies = [
     { name = "numpy" },

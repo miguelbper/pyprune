@@ -67,7 +67,7 @@ publish:
     uv sync
 
     # Create git tag
-    git add pyproject.toml
+    git add pyproject.toml uv.lock
     git commit -m "Update version to $NEW_VERSION"
     git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
     git push --follow-tags origin main

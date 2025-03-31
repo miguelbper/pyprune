@@ -18,7 +18,7 @@ A simple interface to create fast solvers for constraint satisfaction problems
 
 ## Description
 
-Offers a `Backtracking` class that implements a backtracking algorithm. The class is general purpose and can be used to solve a general constraint satisfaction puzzle in a grid. Users should inherit from this class and add the rules of the problem. The package is tiny, has NumPy as its only dependency, and can be used as a learning resource if you want to learn how to implement an algorithm like this yourself.
+This package offers a `Backtracking` class that implements a backtracking algorithm. The class is general purpose and can be used to solve a general constraint satisfaction puzzle in a grid. Users should inherit from this class and add the rules of the problem. The package is tiny, has NumPy as its only dependency, and can be used as a learning resource if you want to learn how to implement an algorithm like this yourself.
 
 ## Installation
 

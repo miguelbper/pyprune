@@ -121,7 +121,7 @@ The combination of backtracking, bitmasks, and representing the grids as NumPy a
 
 ## Why not just use a SAT or CSP solver?
 
-There exist excellent libraries like [Z3](https://github.com/Z3Prover/z3) and [OR-Tools](https://github.com/google/or-tools) that allow us to solve constraint satisfaction problems using a simple declarative language, while being extremelly fast. I use pyprune in scenarios where the problem/puzzle is not easy to express in the language offered by these libraries.
+There exist excellent libraries like [Z3](https://github.com/Z3Prover/z3) and [OR-Tools](https://github.com/google/or-tools) that allow us to solve constraint satisfaction problems using a simple declarative language. Moreover, these solvers are extremelly fast. I use pyprune in scenarios where the problem/puzzle is not easy to express in the language offered by these libraries.
 
 ## License
 

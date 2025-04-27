@@ -48,7 +48,7 @@ known-first-party = ["python_template"]
 venvPath = "."
 venv = ".venv"
 strict = ["**/*.py"]
-pythonVersion = "3.11"  
+pythonVersion = "3.11"
 
 # Ignore lines in the main block for coverage purposes
 [tool.coverage.report]

@@ -40,9 +40,8 @@ select = [
     "SIM", # flake8-simplify - Code simplification
 ]
 
-# Tell Ruff/isort that python_template is first party, so that it puts it last in the imports
 [tool.ruff.lint.isort]
-known-first-party = ["python_template"]
+known-first-party = ["pyprune"]
 
 [tool.pyright]
 venvPath = "."

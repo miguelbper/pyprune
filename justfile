@@ -7,12 +7,6 @@ default:
 check-versions:
     uv --version
     just --version
-    direnv --version
-
-# Allow direnv to load environment variables
-[group("installation")]
-direnv-allow:
-    direnv allow
 
 # Create uv virtual environment
 [group("installation")]
@@ -24,14 +18,9 @@ create-venv:
 install-pre-commit:
     uv run pre-commit install
 
-# Setup environment variables (reminder)
-[group("installation")]
-reminder-env-vars:
-    @echo "\033[1;33mRemember to setup the environment variables by editing the .envrc file!\033[0m"
-
 # Setup repo
 [group("installation")]
-setup: direnv-allow create-venv install-pre-commit reminder-env-vars
+setup: create-venv install-pre-commit
 
 # Run pre-commit hooks
 [group("linting & formatting")]
@@ -48,26 +37,28 @@ test:
 test-cov:
     uv run pytest --cov=pyprune --cov-report=html
 
-# Publish a new release (on GitHub and on PyPI via GitHub Actions)
+# Create a new version tag (will trigger publish.yaml workflow)
 [group("packaging")]
 publish:
     #!/usr/bin/env bash
-    # Get current version from pyproject.toml
-    CURRENT_VERSION=$(grep '^version = ' pyproject.toml | cut -d'"' -f2)
+    # Get last tag from git
+    CURRENT_VERSION=$(git describe --tags --abbrev=0)
+    echo "Current version: $CURRENT_VERSION"
+
+    # Remove 'v' prefix if it exists
+    VERSION_NUMBER=$(echo $CURRENT_VERSION | sed 's/^v//')
 
     # Split version into major.minor.patch
-    IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+    IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_NUMBER"
 
     # Increment patch version
     NEW_PATCH=$((PATCH + 1))
     NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
 
-    # Update version in pyproject.toml
-    sed -i '' "s/^version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
-    uv sync
+    # Create git tag (always with 'v' prefix)
+    NEW_TAG="v$NEW_VERSION"
+    echo "New version: $NEW_TAG"
 
-    # Create git tag
-    git add pyproject.toml uv.lock
-    git commit -m "Update version to $NEW_VERSION"
-    git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
-    git push --follow-tags origin main
+    # Create and push the new tag
+    git tag -a "$NEW_TAG" -m "Release version $NEW_VERSION"
+    git push origin "$NEW_TAG"

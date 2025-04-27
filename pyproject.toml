@@ -1,6 +1,6 @@
 [project]
 name = "pyprune"
-version = "0.1.12"
+dynamic = ["version"]  # Version is managed by git tags
 description = "Backtracking algorithm for constraint satisfaction puzzles."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -14,9 +14,11 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pre-commit>=4.1.0",
-    "pytest-cov>=6.0.0",
-    "pytest>=8.3.5",
+    "pre-commit>=4.2.0",  # Git hooks for code quality
+    "pyright>=1.1.400",   # Static type checker
+    "pytest>=8.3.5",      # Testing framework
+    "pytest-cov>=6.1.1",  # Test coverage reporting
+    "ruff>=0.11.7",       # Linter and formatter
 ]
 
 # ------------------------------------------------------------------------------
@@ -24,26 +26,31 @@ dev = [
 # ------------------------------------------------------------------------------
 
 [tool.ruff]
+target-version = "py311"
 line-length = 120
 
 # Set of rules taken from https://docs.astral.sh/ruff/linter/#rule-selection
 [tool.ruff.lint]
 select = [
-    "E",  # pycodestyle
-    "F",  # Pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "UP",  # pyupgrade
-    "SIM",  # flake8-simplify
+    "E",   # pycodestyle - Python style guide
+    "F",   # Pyflakes - Python linter
+    "I",   # isort - Import sorting
+    "B",   # flake8-bugbear - Bug detection
+    "UP",  # pyupgrade - Python upgrade tool
+    "SIM", # flake8-simplify - Code simplification
 ]
 
-# Set of rules taken from https://rdrn.me/postmodern-python/
+# Tell Ruff/isort that python_template is first party, so that it puts it last in the imports
+[tool.ruff.lint.isort]
+known-first-party = ["python_template"]
+
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
 strict = ["**/*.py"]
 pythonVersion = "3.11"
 
+# Ignore lines in the main block for coverage purposes
 [tool.coverage.report]
 exclude_also = [
     "if __name__ == .__main__.:",
@@ -54,8 +61,17 @@ exclude_also = [
 # ------------------------------------------------------------------------------
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["pyprune"]
+packages = ["src/pyprune"]
+
+# Version management using git tags
+[tool.hatch.version]
+source = "vcs"
+
+# https://docs.astral.sh/uv/concepts/projects/config/#project-packaging
+# will force a project to be built and installed into the project environment
+[tool.uv]
+package = true

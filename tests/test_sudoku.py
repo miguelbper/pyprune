@@ -11,7 +11,7 @@ from pyprune.sudoku.utils import is_sudoku, parse_file_to_sudoku
 
 NUM_SUDOKUS = 100
 unknown = sum(1 << (d + 1) for d in range(9)) * np.ones((9, 9), dtype=Int)
-file_sudokus = Path(__file__).parent.parent / "pyprune" / "sudoku" / "sudoku.txt"
+file_sudokus = Path(__file__).parent.parent / "src" / "pyprune" / "sudoku" / "sudoku.txt"
 sudokus = parse_file_to_sudoku(file_sudokus)[:NUM_SUDOKUS]
 
 
